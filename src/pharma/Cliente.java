@@ -8,11 +8,11 @@ import java.rmi.activation.ActivationException;
 @SuppressWarnings("serial")
 public class Cliente implements MobileAgent, Serializable{
 	
-	private RemActCliente remactserver = null;
+	private ActCliente remactserver = null;
 	
-	private Cliente(MarshalledObject<RemActCliente> obj){
+	public Cliente(MarshalledObject<ActCliente> obj){
 		try{
-			remactserver = (RemActCliente)obj.get();
+			remactserver = (ActCliente)obj.get();
 		}catch(Exception ex){
 			ex.printStackTrace();
 		}
@@ -75,7 +75,7 @@ public class Cliente implements MobileAgent, Serializable{
 						id = userIn.readLine();
 			System.out.println("\nInserisci la quantita' che vuoi comprare: ");
 			qta = Integer.parseInt(userIn.readLine());
-			acquistato = remactserver.transazioneProdotto(id, qta);
+			acquistato = remactserver.vendiProdotto(id, qta);
 			if(acquistato != null)
 				System.out.println("\nIl prodotto e' stato acquistato con successo");
 			else

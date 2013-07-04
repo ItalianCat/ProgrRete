@@ -16,13 +16,13 @@ public class FarmaciaImpl extends UnicastRemoteObject implements MobileAgent, Fa
 
 	private String nomeFarmacia = "";
 	private Map<String, Prodotto> stock;
-	private RemActFarmacia remactserver = null;
+	private ActFarmacia remactserver = null;
 	
-	private FarmaciaImpl(MarshalledObject<RemActFarmacia> obj, String nome) throws RemoteException{
+	public FarmaciaImpl(MarshalledObject<ActFarmacia> obj, String nome) throws RemoteException{
 		nomeFarmacia = nome;
 		stock = new HashMap<String, Prodotto>();
 		try{
-			remactserver = (RemActFarmacia)obj.get();
+			remactserver = (ActFarmacia)obj.get();
 		}catch(Exception ex){
 			ex.printStackTrace();
 		}
@@ -83,7 +83,7 @@ public class FarmaciaImpl extends UnicastRemoteObject implements MobileAgent, Fa
 			id = userIn.readLine();
 			System.out.println("\nInserisci la quantita' da comprare: ");
 			quantita = Integer.parseInt(userIn.readLine());
-			acquistato = remactserver.transazioneProdotto(id, quantita);
+			acquistato = remactserver.vendiProdotto(id, quantita);
 			if(acquistato != null){
 				System.out.println("\nIl prodotto e' stato acquistato con successo");
 				aggiornaStock(id, acquistato, true);

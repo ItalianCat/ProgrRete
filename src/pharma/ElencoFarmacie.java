@@ -41,8 +41,4 @@ public class ElencoFarmacie implements Serializable{
 		return risultato;			
 	}
 	
-	public int getNFarmacie(){
-		return farmacie.size();
-	}
-	
 }

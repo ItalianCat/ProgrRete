@@ -10,11 +10,11 @@ import java.rmi.RemoteException;
 @SuppressWarnings("serial")
 public class Amministratore implements MobileAgent, Serializable {
 	
-	private RemActAmministratore remactserver = null;
+	private ActAmministratore remactserver = null;
 
-	private Amministratore(MarshalledObject<RemActAmministratore> obj){
+	public Amministratore(MarshalledObject<ActAmministratore> obj){
 		try{
-			remactserver = (RemActAmministratore)obj.get();
+			remactserver = (ActAmministratore)obj.get();
 		}catch(Exception ex){ //IOException se non si riesce ad accedere al server e ClassNotFound se non si trova la classe del server
 			ex.printStackTrace();
 		}
@@ -75,7 +75,7 @@ public class Amministratore implements MobileAgent, Serializable {
 				quantita = Integer.parseInt(userIn.readLine());
 				prodotto = new Prodotto(prodotto, quantita);
 			}
-			if(remactserver.rifornisciMagazzino(id, prodotto))
+			if(remactserver.compraProdotto(id, prodotto))
 				System.out.println("\nL'aggiornamento del magazzino centrale e' stato eseguito correttamente\n");
 			else
 				System.out.println("\nErrore nell'aggiornamento del magazzino centrale\n");
