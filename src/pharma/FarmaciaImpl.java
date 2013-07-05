@@ -98,9 +98,10 @@ public class FarmaciaImpl extends UnicastRemoteObject implements MobileAgent, Fa
 	}
 	
 	private void chiudiFarmacia() throws RemoteException{
-		if(remactserver.deregistra(nomeFarmacia))
+		if(remactserver.deregistra(nomeFarmacia)){
+			UnicastRemoteObject.unexportObject(this, true);
 			System.out.println("\nDeregistrazione avvenuta con successo");
-		else
+		}else
 			System.out.println("Errore nella deregistrazione della farmacia dal server centrale");
 	}
 	

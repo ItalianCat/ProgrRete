@@ -9,7 +9,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.rmi.server.Unreferenced;
 
 @SuppressWarnings("serial")
-public class ActServerAutenticazione extends Activatable implements Login, Unreferenced{
+public class ActServerAutenticazione extends Activatable implements ProxyDualLogin, Unreferenced{
 	public Remote stubServerCentrale = null; //SERVE UN VALORE
 	public ElencoUser elencou = null;
 
@@ -42,6 +42,7 @@ public class ActServerAutenticazione extends Activatable implements Login, Unref
 		MobileAgent agent = null;
 		Remote refserver = null; /*REF SERVER*/
 		if(elencou.checkLogin(user, psw)){
+			elencou.aggiornaNAccessi(user);
 			categoria = elencou.getCategoria(user);
 			if(categoria.equals("cliente")){
 				agent = new Cliente(new MarshalledObject(refserver));
@@ -58,10 +59,10 @@ public class ActServerAutenticazione extends Activatable implements Login, Unref
 	
 	@Override
 	public void unreferenced(){
-		try{
+		try {
 			if(inactive(getID()))
 				System.gc();
-		}catch(Exception ex){
+		}catch(RemoteException	| ActivationException ex){ //UnknownObject preso da ActivEx
 			ex.printStackTrace();
 		}
 	}

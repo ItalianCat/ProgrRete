@@ -4,8 +4,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.rmi.server.RMIServerSocketFactory;
-import java.security.KeyStore;
-
+import java.security.*;
+import java.security.cert.CertificateException;
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -51,7 +51,7 @@ public class RMISSLServerSocketFactory implements RMIServerSocketFactory {
 			keymng.init(keystr, "giuliana".toCharArray());
 			context.init(keymng.getKeyManagers(), null, null);
 			ssf = context.getServerSocketFactory();
-		}catch(Exception ex){
+		}catch(NoSuchAlgorithmException | KeyStoreException | CertificateException | UnrecoverableKeyException | KeyManagementException ex){
 			ex.printStackTrace();
 		}	
 		return ssf.createServerSocket(port);

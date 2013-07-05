@@ -88,7 +88,7 @@ public class ActServer extends Activatable implements ActCliente, ActFarmacia, A
 		try{
 			if(inactive(getID()))
 				System.gc();
-		}catch(Exception ex){
+		}catch(RemoteException	| ActivationException ex){ //UnknownObject preso da ActivEx
 			ex.printStackTrace();
 		}
 	}

@@ -1,8 +1,9 @@
 package pharma;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.util.*;
 
+@SuppressWarnings("serial")
 public class UserData implements Serializable{
 	public final String password;
 	public final String categoria;
@@ -12,7 +13,7 @@ public class UserData implements Serializable{
 	public UserData(String password, String categoria){
 		this.password = password;
 		this.categoria = categoria;
-		dataRegistrazione = Time();
+		dataRegistrazione = new Date();
 		nAccessi = 0;
 	}
 	  

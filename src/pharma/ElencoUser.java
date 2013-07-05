@@ -38,6 +38,10 @@ public class ElencoUser implements Serializable{
 	public String getCategoria(String user){
 		return users.get(user).categoria;
 	}
+		
+	public void aggiornaNAccessi(String user){
+		users.get(user).nAccessi++;
+	}
 	
 	public String toStringUsers(){
 		String risultato = "";

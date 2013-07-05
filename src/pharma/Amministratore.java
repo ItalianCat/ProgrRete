@@ -4,18 +4,24 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
+import java.net.MalformedURLException;
 import java.rmi.MarshalledObject;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 
+import javax.naming.NamingException;
+
 @SuppressWarnings("serial")
-public class Amministratore implements MobileAgent, Serializable {
+public class Amministratore implements MobileAgent, Serializable{
 	
 	private ActAmministratore remactserver = null;
+	private ProxyDualChiusura proxydual = null;
 
 	public Amministratore(MarshalledObject<ActAmministratore> obj){
 		try{
 			remactserver = (ActAmministratore)obj.get();
-		}catch(Exception ex){ //IOException se non si riesce ad accedere al server e ClassNotFound se non si trova la classe del server
+		}catch(ClassNotFoundException | IOException ex){
 			ex.printStackTrace();
 		}
 	}
@@ -81,7 +87,7 @@ public class Amministratore implements MobileAgent, Serializable {
 				System.out.println("\nErrore nell'aggiornamento del magazzino centrale\n");
 		}catch(RemoteException ex){
 			ex.printStackTrace();
-		}catch (IOException ex){
+		}catch(IOException ex){
 			ex.printStackTrace();
 		}
 	}
@@ -89,7 +95,13 @@ public class Amministratore implements MobileAgent, Serializable {
 	//TRANSAZIONI COL PROXY
 	
 	private void spegniProxy(){
-		// TODO Auto-generated method stub
-		
+		String refproxy = "";  //INSERISCI
+		try{
+			proxydual = (ProxyDualChiusura)Naming.lookup(refproxy);
+			proxydual.spegni();
+		}catch(RemoteException | NamingException | MalformedURLException | NotBoundException ex){
+				ex.printStackTrace();
+		}
 	}
+	
 }

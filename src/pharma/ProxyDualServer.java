@@ -15,11 +15,11 @@ import javax.naming.NamingException;
 import javax.rmi.PortableRemoteObject;
 
 @SuppressWarnings("serial")
-public class ProxyDualServer implements Login, Serializable{
+public class ProxyDualServer implements ProxyDualLogin, ProxyDualChiusura, Serializable{
 	
-	Login actserveraut = null;
+	ProxyDualLogin actserveraut = null;
 	
-	public ProxyDualServer(Login actserveraut) throws RemoteException{ //perche' non Marshalled?
+	public ProxyDualServer(ProxyDualLogin actserveraut) throws RemoteException{ //perche' non Marshalled?
 		this.actserveraut = actserveraut;
 		UnicastRemoteObject.exportObject(this);
 		PortableRemoteObject.exportObject(this);
@@ -35,7 +35,8 @@ public class ProxyDualServer implements Login, Serializable{
 		return actserveraut.registraUtente(user, data);
 	}
 	
-	public void shutdown() throws RemoteException, NamingException{  //va fatto anche per il server di bootstrap
+	@Override
+	public void spegni() throws RemoteException, NamingException{  //va fatto anche per il server di bootstrap
 		try{
 			Properties propRmiReg = new Properties();
 			propRmiReg.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.rmi.registry.RegistryContextFactory");

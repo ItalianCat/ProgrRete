@@ -16,7 +16,7 @@ public class Magazzino {
 		return null;
 	}
 		
-	public Prodotto vendiProdotto(String id, Integer qta){
+	public Prodotto vendiProdotto(String id, Integer qta){	//concorrenza
 		if(aggiornaMagazzino(id, magazzino.get(id), false))
 			return new Prodotto(magazzino.get(id), qta);
 		else

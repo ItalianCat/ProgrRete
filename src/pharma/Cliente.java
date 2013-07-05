@@ -13,9 +13,10 @@ public class Cliente implements MobileAgent, Serializable{
 	public Cliente(MarshalledObject<ActCliente> obj){
 		try{
 			remactserver = (ActCliente)obj.get();
-		}catch(Exception ex){
+		}catch(ClassNotFoundException | IOException ex){
 			ex.printStackTrace();
 		}
+	
 	}
 	
 	@Override //da mobile agent interface
@@ -41,13 +42,9 @@ public class Cliente implements MobileAgent, Serializable{
 					case 6: System.exit(0);break;
 					default: System.out.println("La selezione non e' valida\n");
 				}
-			}catch(RemoteException ex){
+			}catch(RemoteException | ClassNotFoundException | ActivationException ex){
 				ex.printStackTrace();
 			}catch(IOException ex){
-				ex.printStackTrace();
-			}catch(ClassNotFoundException ex){
-				ex.printStackTrace();
-			}catch(ActivationException ex){
 				ex.printStackTrace();
 			}
 		}
