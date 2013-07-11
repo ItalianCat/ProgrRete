@@ -1,3 +1,7 @@
+/**
+* @author Giuliana Mazzi
+* @version 1.0 del 9 luglio 2013
+*/
 package pharma;
 
 import java.io.Serializable;
@@ -11,7 +15,7 @@ public class ServBootstrap implements ServBootstrap_I, Serializable{
 	public ServBootstrap() throws RemoteException{
 		UnicastRemoteObject.exportObject(this);
 		PortableRemoteObject.exportObject(this);
-		System.out.println("\nIl server di Bootstrap e' stato esportato dualmente.");
+		System.out.println("Il server di Bootstrap e' stato esportato dualmente.");
 	}
 	
 	@Override

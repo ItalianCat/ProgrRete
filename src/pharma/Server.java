@@ -1,3 +1,7 @@
+/**
+* @author Giuliana Mazzi
+* @version 1.0 del 9 luglio 2013
+*/
 package pharma;
 
 import java.io.FileOutputStream;
@@ -18,7 +22,7 @@ public class Server extends Activatable implements ServerCliente_I, ServerFarmac
 	public Server(ActivationID id, MarshalledObject<Vector<Object>> data) throws ActivationException, ClassNotFoundException, IOException{
 		super(id, 30000);  //scegliere un numero di porta
 		if(data == null){
-			System.out.println("\nIl server centrale e' alla sua prima attivazione, pertanto, " +
+			System.out.println("Il server centrale e' alla sua prima attivazione, pertanto, " +
 					"vengono creati un elenco farmacie e un magazzino prodotti vuoti.");
 			magazzinoCentrale = new O_Magazzino();
 			elencof = new O_ElencoFarmacie();
@@ -29,10 +33,10 @@ public class Server extends Activatable implements ServerCliente_I, ServerFarmac
 			ActivationDesc actD = actS.getActivationDesc(id);
 			ActivationDesc actDdefault = new ActivationDesc(actD.getGroupID(), actD.getClassName(), actD.getLocation(), new MarshalledObject<Vector<Object>>(contenitoreOut));
 			actD = actS.setActivationDesc(id, actDdefault);
-			System.out.println("\nL'ActivationDesc del server centrale e' stato aggiornato in modo " +
+			System.out.println("L'ActivationDesc del server centrale e' stato aggiornato in modo " +
 					"da contenere le nuove informazioni di default per le future attivazioni.");
 		}else{
-			System.out.println("\nIl server centrale e' gia' stato attivato in passato, quindi, " +
+			System.out.println("Il server centrale e' gia' stato attivato in passato, quindi, " +
 					"l'elenco delle farmacie registrate e il magazzino dei prodotti" +
 					"sono estratti dal parametro MarshalledObject.");
 			Vector<Object> contenitoreIn = (Vector<Object>)(data.get());
@@ -47,12 +51,14 @@ public class Server extends Activatable implements ServerCliente_I, ServerFarmac
 	@Override
 	public String mostraFarmacie() throws RemoteException{
 		String risultato = "";
+		System.out.println("Il server centrale sta per passare al client l'elenco delle farmacie registrate.");
 		risultato += "\nElenco delle farmacie registrate presso il server centrale:\n" + elencof.toStringFarmacie() + "\n";
 		return risultato;
 	}
 
-	@Override //check eccezioni
+	@Override
 	public ClientFarmacia_I getFarmacia(String nome) throws ActivationException, IOException, ClassNotFoundException, RemoteException{
+		System.out.println("Il server centrale sta per passare al client lo stub della farmacia richiesta.");
 		return (ClientFarmacia_I)(elencof.getFarmaciaStub(nome));
 	}
 	
@@ -60,17 +66,19 @@ public class Server extends Activatable implements ServerCliente_I, ServerFarmac
 	
 	@Override
 	public boolean registra(String nome, Remote obj) throws RemoteException{
-		if(elencof.putFarmacia(nome, (Remote)obj))
+		if(elencof.putFarmacia(nome, (Remote)obj)){
+			System.out.println("Il server centrale ha registrato la farmacia " + nome);
 			return true;
-		else
+		}else
 			return false;
 	}
 	
 	@Override
 	public boolean deregistra(String nome) throws RemoteException{
-		if(elencof.removeFarmacia(nome))
+		if(elencof.removeFarmacia(nome)){
+			System.out.println("Il server centrale ha deregistrato la farmacia " + nome);
 			return true;
-		else
+		}else
 			return false;
 	}
 		
@@ -78,11 +86,13 @@ public class Server extends Activatable implements ServerCliente_I, ServerFarmac
 	
 	@Override
 	public String toStringMagazzinoCentrale() throws RemoteException{
+		System.out.println("Il server centrale sta per visualizzare il proprio magazzino.");
 		return magazzinoCentrale.toStringMagazzino();
 	}
 
 	@Override
 	public O_Prodotto vendiProdotto(String id, Integer qta) throws RemoteException{
+		System.out.println("Il server centrale sta per vendere " + qta + (qta==1?" pezzo":" pezzi") + " del prodotto " + id + ".");
 		return magazzinoCentrale.vendiProdotto(id, qta);
 	}
 	
@@ -90,12 +100,21 @@ public class Server extends Activatable implements ServerCliente_I, ServerFarmac
 
 	@Override
 	public O_Prodotto checkProdottoAMagazzino(String id) throws RemoteException{
+		System.out.println("Il server centrale sta verificare se il prodotto " + id + "e' gia' codificato a magazzino.");
 		return magazzinoCentrale.checkProdottoAMagazzino(id);
 	}
 	
 	@Override
 	public boolean compraProdotto(String id, O_Prodotto prodotto) throws RemoteException{
+		System.out.println("Il server centrale sta per acquisire " + prodotto.quantita + (prodotto.quantita==1?" pezzo":" pezzi") + " del prodotto " + id + ".");
 		return magazzinoCentrale.compraProdotto(id, prodotto);
+	}
+
+	@Override
+	public boolean caricaEsempio() throws RemoteException {
+		Esempio es = new Esempio();
+		magazzinoCentrale = es.magazzinoCentrale;
+		return false;
 	}
 	
 	//METODO PER GC
@@ -120,9 +139,12 @@ public class Server extends Activatable implements ServerCliente_I, ServerFarmac
 				outObj2.flush();
 				outObj2.close();
 			}catch(IOException ex){
-				System.out.println("\nErrore nel salvataggio del magazzino e dell'elenco delle farmacie su file.");
+				System.out.println("Errore nel salvataggio del magazzino e dell'elenco delle farmacie su file.");
 				ex.printStackTrace();
 			}
+			System.out.println("Il server centrale e' stato de-esportato e de-registrato" +
+					"dal sistema di attivazione. Il magazzino e l'elenco delle farmacie sono " +
+					"stati salvati su file.");
 			return true;
 		}
 		return false;
@@ -138,6 +160,7 @@ public class Server extends Activatable implements ServerCliente_I, ServerFarmac
 			ex.printStackTrace();
 		}
 	}
+
 
 	  
 }

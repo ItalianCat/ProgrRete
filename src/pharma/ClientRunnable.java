@@ -1,6 +1,12 @@
+/**
+* @author Giuliana Mazzi
+* @version 1.0 del 9 luglio 2013
+*/
 package pharma;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
@@ -11,6 +17,8 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.activation.ActivationException;
 import java.util.Properties;
+import java.util.Scanner;
+
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.rmi.PortableRemoteObject;
@@ -29,23 +37,32 @@ public class ClientRunnable implements Runnable, Serializable{
 	
 	@Override
 	public void run() {
+		String ip ="";
+		try{
+			Scanner scan = new Scanner(new File("IPserver.txt"));
+			ip += scan.nextLine();
+			scan.close();
+		}catch(FileNotFoundException ex){
+			ex.printStackTrace();
+		}
+				
 		String selezione = "";
 		try{
-			if(categoria){
-				System.out.println("\nIl client usa il protocollo JRMP.");
-				proxy = (ServProxy_I)Naming.lookup("percorsoProxy");//percorso proxy
-			}else{
-				System.out.println("\nIl client usa il protocollo IIOP.");
+			if(categoria){ 	//JRMP
+				System.out.println("Il client usa il protocollo JRMP.");
+				proxy = (ServProxy_I)Naming.lookup(ip+":1099/ProxyDualServer");
+			}else{			//IIOP
+				System.out.println("Il client usa il protocollo IIOP.");
 				Properties propCosnaming = new Properties();
 				propCosnaming.put("java.naming.factory.initial", "com.sun.jndi.cosnaming.CNCtxFactory");
-				propCosnaming.put("java.naming.provider.url", "iiop://localhost:5555");  //CAMBIA
+				propCosnaming.put("java.naming.provider.url", "iiop:"+ip+":5555");
 				InitialContext contextCosnaming = new InitialContext(propCosnaming);
 				Object obj = contextCosnaming.lookup("ProxyDualServer");
 				proxy = (ServProxy_I)PortableRemoteObject.narrow(obj, ServProxy_I.class);
 			}
-			System.out.println("\nE' stata ottenuta una referenza al Proxy con una lookup.");
+			System.out.println("E' stata ottenuta una referenza al Proxy con una lookup.");
 		}catch(NamingException | MalformedURLException | RemoteException | NotBoundException ex){
-			System.out.println("\nSi e' verificato un errore nell'ottenimento della referenza al server Proxy.");
+			System.out.println("Si e' verificato un errore nell'ottenimento della referenza al server Proxy.");
 			ex.printStackTrace();
 		}
 		while(true){
@@ -63,7 +80,7 @@ public class ClientRunnable implements Runnable, Serializable{
 				case 1: registra();break;
 				case 2: login();break;
 				case 3: System.exit(0);break;
-				default: System.out.println("\nLa selezione non e' valida.");
+				default: System.out.println("La selezione non e' valida.");
 			}
 		}
 	}
@@ -72,26 +89,31 @@ public class ClientRunnable implements Runnable, Serializable{
 		boolean flag = false;
 		while(!flag){
 			try{
-				System.out.println("\nSi e' scelto di registrare un nuovo utente.");
-				System.out.println("\nDigitare lo username che si vorrebbe usare: ");
+				System.out.println("Si e' scelto di registrare un nuovo utente.");
+				System.out.print("Digitare lo username che si vorrebbe usare: ");
 				BufferedReader userIn = new BufferedReader(new InputStreamReader(System.in));
 				user = userIn.readLine();
-				System.out.println("\nDigitare la password che si vorrebbe usare: ");
+				System.out.print("\nDigitare la password che si vorrebbe usare: ");
 				password = userIn.readLine();
 				while(true){
-					System.out.println("\nDigitare il tipo di utente che si vorrebbe usare (cliente, farmacia, amministratore): ");
-					tipo = userIn.readLine();
-					if(tipo.equalsIgnoreCase("cliente") || 
-						tipo.equalsIgnoreCase("farmacia") ||
-						tipo.equalsIgnoreCase("amministratore"))
-						break;
-					System.out.println("Attenzione: le opzioni accettate sono solo cliente, farmacia e amministratore.");
+					if(categoria){  //JRMP
+						System.out.print("\nDigitare il tipo di utente che si vorrebbe usare (cliente o farmacia): ");
+						tipo = userIn.readLine();
+						if(tipo.equalsIgnoreCase("cliente") || 
+							tipo.equalsIgnoreCase("farmacia"))
+							break;
+						System.out.println("Attenzione: le opzioni accettate per i client JRMP sono solo cliente e farmacia.");
+					
+					}else{		//IIOP
+						System.out.println("Il tipo di utente sara' amministratore (default per client su protocollo IIOP).");
+						tipo = "amministratore";
+					}					
 				}
 				flag = proxy.registraUtente(user, new O_UserData(password, tipo));
 				if(flag)
-					System.out.println("\nLa registrazione e' avvenuta con successo.");
+					System.out.println("La registrazione e' avvenuta con successo.");
 				else
-					System.out.println("\nImpossibile completare la registrazione. Lo user risulta gia' presente nel sistema.");
+					System.out.println("Impossibile completare la registrazione. Lo user risulta gia' presente nel sistema.");
 			}catch(IOException | ClassNotFoundException | ActivationException ex){
 				ex.printStackTrace();
 			}
@@ -100,16 +122,16 @@ public class ClientRunnable implements Runnable, Serializable{
 
 	private void login(){
 		try {
-			System.out.println("\nSi e' scelto si eseguire il login al sistema.");
-			System.out.println("\nUser: ");
+			System.out.println("Si e' scelto di eseguire il login al sistema.");
+			System.out.print("User: ");
 			BufferedReader userIn = new BufferedReader(new InputStreamReader(System.in));
 			user = userIn.readLine();
-			System.out.println("\nPassword: ");
+			System.out.print("\nPassword: ");
 			password = userIn.readLine();
 			MarshalledObject<ClientMobileAgent_I> obj = (MarshalledObject<ClientMobileAgent_I>)proxy.login(user, password);
 			ClientMobileAgent_I agent = (ClientMobileAgent_I)obj.get();
 			System.out.println("\nE' stato ottenuto il mobile agent dal server Proxy.");
-			System.out.println("\nIl mobile agent viene mandato in esecuzione presso il client.");
+			System.out.println("Il mobile agent viene mandato in esecuzione presso il client.");
 			agent.act();
 		}catch(IOException | ClassNotFoundException | ActivationException ex){
 			ex.printStackTrace();

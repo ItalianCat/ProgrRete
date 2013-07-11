@@ -1,3 +1,7 @@
+/**
+* @author Giuliana Mazzi
+* @version 1.0 del 9 luglio 2013
+*/
 package pharma;
 
 import java.io.Serializable;
@@ -18,7 +22,7 @@ public class O_Magazzino implements Serializable{
 		return null;
 	}
 		
-	public O_Prodotto vendiProdotto(String id, Integer qta){	//concorrenza
+	public O_Prodotto vendiProdotto(String id, Integer qta){
 		if(aggiornaMagazzino(id, magazzino.get(id), false))
 			return new O_Prodotto(magazzino.get(id), qta);
 		else
@@ -46,7 +50,7 @@ public class O_Magazzino implements Serializable{
 			if(!magazzino.containsKey(id))
 				magazzino.put(id, prodotto);
 			else
-				magazzino.get(id).quantita += prodotto.quantita;  //creo metodo sotto Prodotto???
+				magazzino.get(id).quantita += prodotto.quantita;
 		}else{ //togli qta
 			if(prodotto.quantita <= magazzino.get(id).quantita){
 				magazzino.get(id).quantita -= prodotto.quantita;

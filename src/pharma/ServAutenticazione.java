@@ -1,3 +1,7 @@
+/**
+* @author Giuliana Mazzi
+* @version 1.0 del 9 luglio 2013
+*/
 package pharma;
 
 import java.io.FileOutputStream;
@@ -22,9 +26,9 @@ public class ServAutenticazione extends Activatable implements ServAutenticazion
 
 	@SuppressWarnings("unchecked")
 	public ServAutenticazione(ActivationID id, MarshalledObject<Vector<Object>> obj) throws ActivationException, ClassNotFoundException, IOException{
-		super(id, 35000, new RMISSLClientSocketFactory(), new RMISSLServerSocketFactory());  //numero!!!
+		super(id, 35001);//, new RMISSLClientSocketFactory(), new RMISSLServerSocketFactory());  //numero!!!
 		if(obj == null){
-			System.out.println("\nIl server di autenticazione e' alla sua prima attivazione, pertanto, " +
+			System.out.println("Il server di autenticazione e' alla sua prima attivazione, pertanto, " +
 					"la referenza al server centrale viene letta da file e viene creato un elenco " +
 					"degli utenti vuoto.");
 			try{
@@ -33,7 +37,7 @@ public class ServAutenticazione extends Activatable implements ServAutenticazion
 				stubServerCentrale = ((MarshalledObject<Remote>)inObj.readObject()).get();
 				inObj.close();
 			}catch(IOException ex){
-				System.out.println("\nErrore nel recupero dello stub del server centrale da file.");
+				System.out.println("Errore nel recupero dello stub del server centrale da file.");
 				ex.printStackTrace();
 			}
 			elencou = new O_ElencoUser();
@@ -44,10 +48,10 @@ public class ServAutenticazione extends Activatable implements ServAutenticazion
 			ActivationDesc actD = actS.getActivationDesc(id);
 			ActivationDesc actDdefault = new ActivationDesc(actD.getGroupID(), actD.getClassName(), actD.getLocation(), new MarshalledObject<Vector<Object>>(contenitore));
 			actD = actS.setActivationDesc(id, actDdefault);
-			System.out.println("\nL'ActivationDesc del server di autenticazione e' stato aggiornato " +
+			System.out.println("L'ActivationDesc del server di autenticazione e' stato aggiornato " +
 					"in modo da contenere le nuove informazioni di default per le future attivazioni.");
 		}else{
-			System.out.println("\nIl server di autenticazione e' gia' stato attivato in passato, quindi, " +
+			System.out.println("Il server di autenticazione e' gia' stato attivato in passato, quindi, " +
 					"la referenza al server centrale e la lista degli utenti sono estratti dal parametro " +
 					"MarshalledObject.");
 			Vector<Object> data = (Vector<Object>)(obj.get());
@@ -60,6 +64,7 @@ public class ServAutenticazione extends Activatable implements ServAutenticazion
 	@Override
 	public boolean registraUtente(String user, O_UserData data) throws RemoteException, ActivationException, IOException, ClassNotFoundException{
 		if(elencou.putUser(user, data)){
+			System.out.println("Il server di autenticazione ha registrato il nuovo utente.");
 			return true;
 		}else
 			return false;
@@ -81,6 +86,8 @@ public class ServAutenticazione extends Activatable implements ServAutenticazion
 			}else if(categoria.equals("amministratore")){
 				agent = new ClientAmministratore(new MarshalledObject(stubServerCentrale));
 			}
+			System.out.println("Il server di autenticazione sta per fornire il mobile agent " +
+					"al client con il riferimento al server centrale.");
 			return new MarshalledObject<ClientMobileAgent_I>(agent);
 		}
 		return null;
@@ -102,9 +109,11 @@ public class ServAutenticazione extends Activatable implements ServAutenticazion
 				outObj.flush();
 				outObj.close();
 			}catch(IOException ex){
-				System.out.println("\nErrore nel salvataggio dell'elenco utenti su file.");
+				System.out.println("Errore nel salvataggio dell'elenco utenti su file.");
 				ex.printStackTrace();
 			}
+			System.out.println("Il server di autenticazione e' stato de-esportato e de-registrato" +
+					"dal sistema di attivazione. L'elenco utenti e' stato salvato su file.");
 			return true;
 		}else
 			return false;
