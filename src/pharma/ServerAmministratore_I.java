@@ -11,5 +11,5 @@ public interface ServerAmministratore_I extends Remote{
 	public O_Prodotto checkProdottoAMagazzino(String id) throws RemoteException;
 	public boolean compraProdotto(String id, O_Prodotto prodotto) throws RemoteException;
 	public boolean spegniServer() throws RemoteException;
-	public boolean caricaEsempio() throws RemoteException;
+	public void caricaEsempio() throws RemoteException;
 }

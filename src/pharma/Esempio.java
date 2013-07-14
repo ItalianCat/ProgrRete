@@ -14,10 +14,12 @@ public class Esempio {
 		String[] produttore = {"GSK","GSK","DSS","GHR"};
 		String[] formato = {"sciroppo","supposte","compresse","bustine"};
 		Integer[] quantita = {20,5,7,30};
-		O_Prodotto[] prodotti = {};  //se null, esce warning!? condivisione referenze (come un puntatore) o copia??
+		O_Prodotto[] prodotti = null;  //se null, esce warning!? condivisione referenze (come un puntatore) o copia??
 		for(int i=0; i < id.length; i++){
 			prodotti[i] = new O_Prodotto(nome[i],eccipiente[i],produttore[i],formato[i],quantita[i]);
+			System.out.println("OK1");
 			magazzinoCentrale.magazzino.put(id[i],prodotti[i]);
+			System.out.println("OK2");
 		}
 	}
 	

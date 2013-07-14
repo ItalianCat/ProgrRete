@@ -20,7 +20,7 @@ public class Server extends Activatable implements ServerCliente_I, ServerFarmac
 	public O_ElencoFarmacie elencof = null;
 	
 	public Server(ActivationID id, MarshalledObject<Vector<Object>> data) throws ActivationException, ClassNotFoundException, IOException{
-		super(id, 30000);  //scegliere un numero di porta
+		super(id, 0);  //scegliere un numero di porta
 		if(data == null){
 			System.out.println("Il server centrale e' alla sua prima attivazione, pertanto, " +
 					"vengono creati un elenco farmacie e un magazzino prodotti vuoti.");
@@ -43,7 +43,7 @@ public class Server extends Activatable implements ServerCliente_I, ServerFarmac
 			magazzinoCentrale = (O_Magazzino)contenitoreIn.elementAt(0);
 			elencof = (O_ElencoFarmacie)contenitoreIn.elementAt(1);
 		}
-		System.out.println("!!!!!!!! E' stato creato il server centrale.");
+		System.out.println("E' stato creato il server centrale.");
 	}
 
 	//METODI SOLO PER CLIENTE
@@ -92,6 +92,7 @@ public class Server extends Activatable implements ServerCliente_I, ServerFarmac
 
 	@Override
 	public O_Prodotto vendiProdotto(String id, Integer qta) throws RemoteException{
+		System.out.println("sono qui");
 		System.out.println("Il server centrale sta per vendere " + qta + (qta==1?" pezzo":" pezzi") + " del prodotto " + id + ".");
 		return magazzinoCentrale.vendiProdotto(id, qta);
 	}
@@ -111,10 +112,9 @@ public class Server extends Activatable implements ServerCliente_I, ServerFarmac
 	}
 
 	@Override
-	public boolean caricaEsempio() throws RemoteException {
+	public void caricaEsempio() throws RemoteException {
 		Esempio es = new Esempio();
 		magazzinoCentrale = es.magazzinoCentrale;
-		return false;
 	}
 	
 	//METODO PER GC
@@ -156,7 +156,7 @@ public class Server extends Activatable implements ServerCliente_I, ServerFarmac
 		try{
 			if(inactive(getID()))
 				System.gc();
-		}catch(RemoteException	| ActivationException ex){
+		}catch(Exception ex){
 			ex.printStackTrace();
 		}
 	}

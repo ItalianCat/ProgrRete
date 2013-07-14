@@ -55,7 +55,7 @@ public class RMISSLServerSocketFactory implements RMIServerSocketFactory {
 			keymng.init(keystr, "giuliana".toCharArray());
 			context.init(keymng.getKeyManagers(), null, null);
 			ssf = context.getServerSocketFactory();
-		}catch(NoSuchAlgorithmException | KeyStoreException | CertificateException | UnrecoverableKeyException | KeyManagementException ex){
+		}catch(Exception ex){
 			ex.printStackTrace();
 		}	
 		return ssf.createServerSocket(port);

@@ -13,7 +13,6 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.Properties;
 import javax.naming.Context;
 import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.rmi.PortableRemoteObject;
 
 @SuppressWarnings("serial")
@@ -23,20 +22,19 @@ public class ServProxy implements ServProxy_I, ServProxyOff_I, Serializable{
 	
 	public ServProxy(ServAutenticazione_I actserveraut) throws RemoteException{
 		this.actserveraut = actserveraut;
-		UnicastRemoteObject.exportObject(this);
+		UnicastRemoteObject.exportObject(this,0);
 		PortableRemoteObject.exportObject(this);
-		System.out.println("Il server Proxy e' stato creato ed esportato dualmente.");
 	}
 	
 	@Override
 	public boolean registraUtente(String user, O_UserData data) throws RemoteException, ActivationException, IOException, ClassNotFoundException{
-		System.out.println("Il server Proxy sta per chiedere al server di autenticazione " +
+		System.out.println("\nIl server Proxy sta per chiedere al server di autenticazione " +
 				"la registrazione di un nuovo utente.");
 		return actserveraut.registraUtente(user, data);
 	}
 	@Override
 	public MarshalledObject<ClientMobileAgent_I> login(String user, String psw) throws RemoteException, ActivationException, IOException, ClassNotFoundException{
-		System.out.println("Il server Proxy sta per chiedere al server di autenticazione " +
+		System.out.println("\nIl server Proxy sta per chiedere al server di autenticazione " +
 				"di effettuare il login per un utente.");
 		return actserveraut.login(user, psw);
 	}
@@ -58,7 +56,7 @@ public class ServProxy implements ServProxy_I, ServProxyOff_I, Serializable{
 			UnicastRemoteObject.unexportObject(this, true);
 			contextCosnaming.unbind("ProxyDualServer");
 			PortableRemoteObject.unexportObject(this);
-			System.out.println("Il server Proxy e' stato deregistrato dai servizi di naming " +
+			System.out.println("\nIl server Proxy e' stato deregistrato dai servizi di naming " +
 					"e de-esportato dualmente.");
 				
 			//server bootstrap
@@ -67,15 +65,15 @@ public class ServProxy implements ServProxy_I, ServProxyOff_I, Serializable{
 			UnicastRemoteObject.unexportObject(boot, true);
 			contextCosnaming.unbind("BootstrapServer");
 			PortableRemoteObject.unexportObject(boot);
-			System.out.println("Il server Proxy ha deregistrato dai servizi di naming e " +
+			System.out.println("\nIl server Proxy ha deregistrato dai servizi di naming e " +
 					"de-esportato dualmente il server di Bootstrap.");
 			
 			//server autenticazione e centrale senza proxy sono irraggiungibili pero' se il client ha salvato la referenza...
-			System.out.println("Il server Proxy sta per chiedere lo spegnimento del server di autenticazione.");
+			System.out.println("\nIl server Proxy sta per chiedere lo spegnimento del server di autenticazione.");
 			actserveraut.spegni();
 		
 			System.exit(0);
-		}catch(NamingException | RemoteException ex){
+		}catch(Exception ex){
 			ex.printStackTrace();
 		}
 		return false;

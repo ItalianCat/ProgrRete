@@ -16,7 +16,6 @@ import java.util.Properties;
 import java.util.Scanner;
 
 import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.rmi.PortableRemoteObject;
 
 /**Il Client Amministratore e' un mobile agent che gestisce le operazioni di competenza
@@ -37,7 +36,7 @@ public class ClientAmministratore implements ClientMobileAgent_I, Serializable{
 		try{
 			remactserver = (ServerAmministratore_I)obj.get();
 			System.out.println("Il client Amministratore ha ottenuto la referenza al server centrale.");
-		}catch(ClassNotFoundException | IOException ex){
+		}catch(Exception ex){
 			System.out.println("Si e' verificato un errore nell'ottenimento della referenza al server centrale.");
 			ex.printStackTrace();
 		}
@@ -103,7 +102,7 @@ public class ClientAmministratore implements ClientMobileAgent_I, Serializable{
 				prodotto = new O_Prodotto(prodotto, quantita);
 			}
 			if(remactserver.compraProdotto(id, prodotto))
-				System.out.println("L'aggiornamento del magazzino centrale e' stato eseguito correttamente.\n");
+				System.out.println("L'aggiornamento del magazzino centrale e' stato eseguito correttamente.");
 			else
 				System.out.println("Si e' verificato un errore nell'aggiornamento del magazzino centrale.\n");
 		}catch(RemoteException ex){
@@ -156,7 +155,7 @@ public class ClientAmministratore implements ClientMobileAgent_I, Serializable{
 				System.out.println("Si e' verificato un errore nello spegnimento del server centrale.");
 			}			
 				
-		}catch(RemoteException | NamingException ex){
+		}catch(Exception ex){
 				ex.printStackTrace();
 		}
 	}

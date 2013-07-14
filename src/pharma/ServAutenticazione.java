@@ -26,13 +26,13 @@ public class ServAutenticazione extends Activatable implements ServAutenticazion
 
 	@SuppressWarnings("unchecked")
 	public ServAutenticazione(ActivationID id, MarshalledObject<Vector<Object>> obj) throws ActivationException, ClassNotFoundException, IOException{
-		super(id, 35001);//, new RMISSLClientSocketFactory(), new RMISSLServerSocketFactory());  //numero!!!
+		super(id, 0);//, new RMISSLClientSocketFactory(), new RMISSLServerSocketFactory());  //numero!!!
 		if(obj == null){
 			System.out.println("Il server di autenticazione e' alla sua prima attivazione, pertanto, " +
 					"la referenza al server centrale viene letta da file e viene creato un elenco " +
 					"degli utenti vuoto.");
 			try{
-				InputStream in = new URL("file://" + System.getProperty("user.dir") + "/" + "javarmi/StubServerCentrale").openStream();
+				InputStream in = new URL("file:///javarmi/StubServerCentrale").openStream();
 				ObjectInputStream inObj = new ObjectInputStream(in);
 				stubServerCentrale = ((MarshalledObject<Remote>)inObj.readObject()).get();
 				inObj.close();
@@ -58,7 +58,7 @@ public class ServAutenticazione extends Activatable implements ServAutenticazion
 			stubServerCentrale = (Remote)data.elementAt(0);
 			elencou = (O_ElencoUser)data.elementAt(1);
 		}
-		System.out.println("!!!!! E' stato creato il server di Autenticazione.");
+		System.out.println("E' stato creato il server di Autenticazione.");
 	}
 
 	@Override
@@ -79,15 +79,18 @@ public class ServAutenticazione extends Activatable implements ServAutenticazion
 			elencou.aggiornaNAccessi(user);
 			categoria = elencou.getCategoria(user);
 			if(categoria.equals("cliente")){
-				agent = new ClientCliente(new MarshalledObject(stubServerCentrale));
+				agent = new ClientCliente(new MarshalledObject((ServerCliente_I)stubServerCentrale));
 			}else if(categoria.equals("farmacia")){
-				agent = new ClientFarmacia(new MarshalledObject(stubServerCentrale), user);
+				agent = new ClientFarmacia(new MarshalledObject((ServerFarmacia_I)stubServerCentrale), user);
 				UnicastRemoteObject.unexportObject(agent, true);  //era stato esportato automaticamente
 			}else if(categoria.equals("amministratore")){
-				agent = new ClientAmministratore(new MarshalledObject(stubServerCentrale));
+				agent = new ClientAmministratore(new MarshalledObject((ServerAmministratore_I)stubServerCentrale));
 			}
-			System.out.println("Il server di autenticazione sta per fornire il mobile agent " +
+			System.out.println("Il server di autenticazione ha passato il mobile agent " +
 					"al client con il riferimento al server centrale.");
+			System.out.println("STUB1 = " + stubServerCentrale);
+			((ServerFarmacia_I) stubServerCentrale).toStringMagazzinoCentrale();
+			System.out.println("STUB2 = " + stubServerCentrale);
 			return new MarshalledObject<ClientMobileAgent_I>(agent);
 		}
 		return null;
@@ -124,7 +127,7 @@ public class ServAutenticazione extends Activatable implements ServAutenticazion
 		try {
 			if(inactive(getID()))
 				System.gc();
-		}catch(RemoteException	| ActivationException ex){
+		}catch(Exception ex){
 			ex.printStackTrace();
 		}
 	}

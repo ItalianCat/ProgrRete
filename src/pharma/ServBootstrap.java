@@ -13,9 +13,8 @@ import javax.rmi.PortableRemoteObject;
 public class ServBootstrap implements ServBootstrap_I, Serializable{
 
 	public ServBootstrap() throws RemoteException{
-		UnicastRemoteObject.exportObject(this);
+		UnicastRemoteObject.exportObject(this,0);
 		PortableRemoteObject.exportObject(this);
-		System.out.println("Il server di Bootstrap e' stato esportato dualmente.");
 	}
 	
 	@Override

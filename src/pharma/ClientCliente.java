@@ -12,13 +12,13 @@ import java.rmi.activation.ActivationException;
 @SuppressWarnings("serial")
 public class ClientCliente implements ClientMobileAgent_I, Serializable{
 	
-	private ServerCliente_I remactserver = null;  //dove dico che e' IIOP o RMI?
+	private ServerCliente_I remactserver = null;
 	
 	public ClientCliente(MarshalledObject<ServerCliente_I> obj){
 		try{
 			remactserver = (ServerCliente_I)obj.get();
-			System.out.println("Il client Cliente ha ottenuto la referenza al server centrale.");
-		}catch(ClassNotFoundException | IOException ex){
+			System.out.println("Il client Cliente ha ottenuto la referenza al server centrale.\nSTUB = " +remactserver);
+		}catch(Exception ex){
 			System.out.println("Si e' verificato un errore nell'ottenimento della referenza al server centrale.");
 			ex.printStackTrace();
 		}
@@ -48,9 +48,7 @@ public class ClientCliente implements ClientMobileAgent_I, Serializable{
 					case 6: System.exit(0);break;
 					default: System.out.println("La selezione non e' valida.");
 				}
-			}catch(RemoteException | ClassNotFoundException | ActivationException ex){
-				ex.printStackTrace();
-			}catch(IOException ex){
+			}catch(Exception ex){
 				ex.printStackTrace();
 			}
 		}
@@ -58,7 +56,7 @@ public class ClientCliente implements ClientMobileAgent_I, Serializable{
 	
 	//TRANSAZIONI COL SERVER CENTRALE
 	
-	private void mostraProdottiMagazzinoCentrale() throws RemoteException{
+	public void mostraProdottiMagazzinoCentrale() throws RemoteException{
 		System.out.println("Si e' scelto di visualizzare i prodotti disponibili presso il magazzino centrale.");
 		System.out.println(remactserver.toStringMagazzinoCentrale());
 	}
@@ -81,6 +79,7 @@ public class ClientCliente implements ClientMobileAgent_I, Serializable{
 						id = userIn.readLine();
 			System.out.print("\nInserire la quantita' che vuoi comprare: ");
 			qta = Integer.parseInt(userIn.readLine());
+			System.out.println(id + " " + qta);
 			acquistato = remactserver.vendiProdotto(id, qta);
 			if(acquistato != null)
 				System.out.println("\nIl prodotto e' stato acquistato con successo.");

@@ -31,7 +31,7 @@ public class O_Prodotto implements Serializable{
 	  }
 	  
 	  public String toStringProdotto(){
-		  String risultato = nome + "\t\t" + eccipiente + "\t\t" + produttore + "\t\t" + formato + "\t\t" + quantita;
+		  String risultato = nome + "\t" + eccipiente + "\t" + produttore + "\t" + formato + "\t" + quantita;
 		  return risultato;
 	  }
 	  
