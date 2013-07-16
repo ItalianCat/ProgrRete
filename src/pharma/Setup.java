@@ -28,14 +28,12 @@ import javax.naming.InitialContext;
  *   sulle loro porte di default.
  */
 
-public class Setup {
+public class Setup{
 	private Setup(){} //evito istanziazioni
 	public static void main(String args[]){
 		
 		String policyGroup = Input.percorso + "/javarmi/pharma/group.policy";
-		//String policyGroup = System.getProperty("pharma.policy","group.policy");
-		String implCodebase = "file:///javarmi/";  //dove metto le implementazioni delle interfacce non devono essere note al client
-		//String implCodebase = System.getProperty("pharma.impl.codebase");
+		String implCodebase = "file:///javarmi/"; //IMPORTANTE la barra dopo javarmi //ERA "http://192.168.0.201:8000/common/";
 		Remote stubServ = null;
 		ServAutenticazione_I stubServAut = null;
 		String ip = "";
@@ -67,7 +65,7 @@ public class Setup {
 			ActivationDesc serv = new ActivationDesc(IDgruppoServ, "pharma.Server", implCodebase, null);
 			System.out.println("- E' stato creato l'Activation Description associato al server centrale.");
 			
-			stubServ = (Remote)Activatable.register(serv); //QUI DEVE LEGGERE GLI STUB da codebase HTTP non da C! (ma non risulta sul server http...)
+			stubServ = (Remote)Activatable.register(serv);
 			System.out.println("- Il server centrale e' stato registrato col sistema di attivazione. " +
 					"Ora e' possibile accedere al server centrale attraverso lo stub:\n" + stubServ);
 			
@@ -116,8 +114,8 @@ public class Setup {
 		
 		
 		try{
-			//System.setProperty("javax.net.ssl.trustStore", "truststore.jks");
-			//System.setProperty("javax.net.ssl.trustStorePassword", "giuliana");
+			System.setProperty("javax.net.ssl.trustStore", "truststore.jks");
+			System.setProperty("javax.net.ssl.trustStorePassword", "giuliana");
 			ServProxy proxyServ = new ServProxy(stubServAut);
 			System.out.println("\nSERVER PROXY:\n- E' stato creato un server Proxy con lo stub del " +
 					"server di autenticazione ed e' stato esportato dualmente.");
@@ -125,8 +123,8 @@ public class Setup {
 			Properties prop3 = new Properties();
 			prop3.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.rmi.registry.RegistryContextFactory");
 			prop3.put(Context.PROVIDER_URL, "rmi://localhost:1099");
-			prop3.put("java.rmi.server.hostname", ip);	
-			
+			prop3.put("java.rmi.server.hostname", ip);
+						
 			InitialContext context3 = new InitialContext(prop3);
 			context3.rebind("ProxyDualServer", proxyServ);
 			System.out.println("- Il server Proxy e' stato registrato sul registro RMI.");

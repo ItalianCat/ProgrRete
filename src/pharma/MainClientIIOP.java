@@ -3,17 +3,25 @@
 * @version 1.0 del 9 luglio 2013
 */
 package pharma;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Properties;
 import java.util.Scanner;
-
 import javax.naming.InitialContext;
 import javax.rmi.PortableRemoteObject;
 
+/**
+ * Questa classe definisce il client minimale per utente che utilizzano il protocollo IIOP.
+ * Partendo da un file "IPserver.txt", che deve essere inserito nella cartella "javarmi",
+ * estrae l'indirizzo IP dell'host dei server e lo usa fare una lookup del server di 
+ * bootstrap sul servizio di CosNaming. Poi invoca il metodo getClientIIOP sulla referenza 
+ * del server di Bootstrap per ottenere un'istanza della classe ClientRunnable, ovvero per 
+ * caricare dinamicamente il codice di cui ha bisogno per funzionare.
+ */
 public class MainClientIIOP{
+	
 	static final String refserver = null;
+	
 	public static void main(String[] args){
 		
 		String ip ="";

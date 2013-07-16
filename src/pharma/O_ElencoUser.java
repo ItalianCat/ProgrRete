@@ -33,9 +33,12 @@ public class O_ElencoUser implements Serializable{
 	}
 	
 	public boolean checkLogin(String user, String psw){
-		if(users.containsKey(user) & users.get(user).password.equals(psw))
-			return true;
-		else
+		if(users.containsKey(user)){
+			if(users.get(user).password.equals(psw))
+				return true;
+			else
+				return false;
+		}else
 			return false;
 	}
 	

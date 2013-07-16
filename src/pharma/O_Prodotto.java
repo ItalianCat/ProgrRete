@@ -31,10 +31,18 @@ public class O_Prodotto implements Serializable{
 	  }
 	  
 	  public String toStringProdotto(){
-		  String risultato = nome + "\t" + eccipiente + "\t" + produttore + "\t" + formato + "\t" + quantita;
+		  String risultato = nome + fill(nome.length()) + eccipiente + fill(eccipiente.length()) +
+				  produttore + fill(produttore.length()) + formato + fill(formato.length()) + quantita;
 		  return risultato;
 	  }
 	  
+	  private String fill(Integer lung){
+			String result = "";
+			Integer nVolte = 14 - lung;
+			while (nVolte-- > 0)
+				result += " ";
+			return result;
+	  }
 
 	  @Override
 	  public boolean equals(Object other){

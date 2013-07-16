@@ -18,9 +18,14 @@ public class Server extends Activatable implements ServerCliente_I, ServerFarmac
 	
 	public O_Magazzino magazzinoCentrale = null;
 	public O_ElencoFarmacie elencof = null;
+	public ActivationID id = null;
+	public ActivationSystem actS = null;
+	public ActivationDesc actD = null;
+	public ActivationDesc actDdefault = null;
 	
 	public Server(ActivationID id, MarshalledObject<Vector<Object>> data) throws ActivationException, ClassNotFoundException, IOException{
 		super(id, 0);  //scegliere un numero di porta
+		this.id = id;
 		if(data == null){
 			System.out.println("Il server centrale e' alla sua prima attivazione, pertanto, " +
 					"vengono creati un elenco farmacie e un magazzino prodotti vuoti.");
@@ -29,15 +34,15 @@ public class Server extends Activatable implements ServerCliente_I, ServerFarmac
 			Vector<Object> contenitoreOut = new Vector<Object>();
 			contenitoreOut.add(0, magazzinoCentrale);
 			contenitoreOut.add(1, elencof);	
-			ActivationSystem actS = ActivationGroup.getSystem();
-			ActivationDesc actD = actS.getActivationDesc(id);
-			ActivationDesc actDdefault = new ActivationDesc(actD.getGroupID(), actD.getClassName(), actD.getLocation(), new MarshalledObject<Vector<Object>>(contenitoreOut));
+			actS = ActivationGroup.getSystem();
+			actD = actS.getActivationDesc(id);
+			actDdefault = new ActivationDesc(actD.getGroupID(), actD.getClassName(), actD.getLocation(), new MarshalledObject<Vector<Object>>(contenitoreOut));
 			actD = actS.setActivationDesc(id, actDdefault);
 			System.out.println("L'ActivationDesc del server centrale e' stato aggiornato in modo " +
 					"da contenere le nuove informazioni di default per le future attivazioni.");
 		}else{
 			System.out.println("Il server centrale e' gia' stato attivato in passato, quindi, " +
-					"l'elenco delle farmacie registrate e il magazzino dei prodotti" +
+					"l'elenco delle farmacie registrate e il magazzino dei prodotti " +
 					"sono estratti dal parametro MarshalledObject.");
 			Vector<Object> contenitoreIn = (Vector<Object>)(data.get());
 			magazzinoCentrale = (O_Magazzino)contenitoreIn.elementAt(0);
@@ -92,7 +97,6 @@ public class Server extends Activatable implements ServerCliente_I, ServerFarmac
 
 	@Override
 	public O_Prodotto vendiProdotto(String id, Integer qta) throws RemoteException{
-		System.out.println("sono qui");
 		System.out.println("Il server centrale sta per vendere " + qta + (qta==1?" pezzo":" pezzi") + " del prodotto " + id + ".");
 		return magazzinoCentrale.vendiProdotto(id, qta);
 	}
@@ -101,8 +105,15 @@ public class Server extends Activatable implements ServerCliente_I, ServerFarmac
 
 	@Override
 	public O_Prodotto checkProdottoAMagazzino(String id) throws RemoteException{
-		System.out.println("Il server centrale sta verificare se il prodotto " + id + "e' gia' codificato a magazzino.");
+		System.out.println("Il server centrale sta verificare se il prodotto " + id + "e' presente in magazzino.");
 		return magazzinoCentrale.checkProdottoAMagazzino(id);
+	}
+	
+	@Override
+	public boolean checkFarmaciaRegistrata(String nome){
+		if(elencof.checkFarmaciaRegistrata(nome))
+			return true;
+		return false;
 	}
 	
 	@Override
@@ -115,6 +126,11 @@ public class Server extends Activatable implements ServerCliente_I, ServerFarmac
 	public void caricaEsempio() throws RemoteException {
 		Esempio es = new Esempio();
 		magazzinoCentrale = es.magazzinoCentrale;
+	}
+
+	@Override
+	public void eliminaProdotto(String id) throws RemoteException {
+		magazzinoCentrale.eliminaProdotto(id);
 	}
 	
 	//METODO PER GC
@@ -154,13 +170,20 @@ public class Server extends Activatable implements ServerCliente_I, ServerFarmac
 	@Override
 	public void unreferenced(){
 		try{
-			if(inactive(getID()))
+			if(inactive(getID())){
+				System.out.println("Il server centrale sta per essere garbage collected. Viene " +
+						"aggiornato l'ActivationDesc con il magazzino centrale e l'elenco farmacie" +
+						"registrate attuali per passare i dati alla prossima attivazione.");
+				Vector<Object> contenitoreOut = new Vector<Object>();
+				contenitoreOut.add(0, magazzinoCentrale);
+				contenitoreOut.add(1, elencof);	
+				actDdefault = new ActivationDesc(actD.getGroupID(), actD.getClassName(), actD.getLocation(), new MarshalledObject<Vector<Object>>(contenitoreOut));
+				actD = actS.setActivationDesc(id, actDdefault);
 				System.gc();
+			}
 		}catch(Exception ex){
 			ex.printStackTrace();
 		}
 	}
-
-
 	  
 }

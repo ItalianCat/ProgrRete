@@ -45,6 +45,13 @@ public class O_ElencoFarmacie implements Serializable{
 		return risultato;			
 	}
 	
+	public boolean checkFarmaciaRegistrata(String nome){
+		if(farmacie.containsKey(nome))
+			if(farmacie.get(nome) != null)
+				return true;
+		return false;
+	}
+	
 	@Override
 	public boolean equals(Object other){
 		if(other instanceof O_ElencoFarmacie){

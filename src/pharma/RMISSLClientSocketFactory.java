@@ -4,25 +4,32 @@
 */
 package pharma;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.Socket;
-import java.rmi.server.RMIClientSocketFactory;
-
-import javax.net.SocketFactory;
-import javax.net.ssl.SSLSocketFactory;
-
-//Java.rmi.server package ha due classi RMIClientSocketFactory e RMIServerSocketFactory
-//che possono essere estese per creare dei socket SSL
+import java.io.*;
+import java.net.*;
+import java.rmi.server.*;
+import javax.net.ssl.*;
 
 @SuppressWarnings("serial")
-public class RMISSLClientSocketFactory implements RMIClientSocketFactory, Serializable{ //ser cosi i socket possono essere serializzati insieme agli stub quando vengono passati al client 
+public class RMISSLClientSocketFactory implements RMIClientSocketFactory, Serializable{ 
 
 	@Override
 	public Socket createSocket(String host, int port) throws IOException{
-		SocketFactory factory = SSLSocketFactory.getDefault();
-		Socket socket = factory.createSocket(host, port);
-		return socket;
+		SSLSocketFactory factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
+		return (SSLSocket)factory.createSocket(host, port);
+	}
+
+	@Override
+	public boolean equals(Object obj){
+		if(!(obj instanceof RMISSLClientSocketFactory) || obj == null){
+			return false;
+		}else{
+			return true;
+		}
+	}
+	
+	@Override
+	public int hashCode(){
+		return getClass().hashCode();
 	}
 	
 }

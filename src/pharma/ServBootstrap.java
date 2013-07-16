@@ -4,13 +4,11 @@
 */
 package pharma;
 
-import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import javax.rmi.PortableRemoteObject;
 
-@SuppressWarnings("serial")
-public class ServBootstrap implements ServBootstrap_I, Serializable{
+public class ServBootstrap implements ServBootstrap_I{ //, Serializable
 
 	public ServBootstrap() throws RemoteException{
 		UnicastRemoteObject.exportObject(this,0);

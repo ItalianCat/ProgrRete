@@ -4,22 +4,21 @@
 */
 package pharma;
 
-public class Esempio {
+public class Esempio{
 	public O_Magazzino magazzinoCentrale = null;
 	
 	public Esempio(){
-		String[] id = {"ASC","ASU","BBC","DSG"};
-		String[] nome = {"Tachipirina","Tachipirina","Plasil","DropStar"};
-		String[] eccipiente = {"AB","DF","PO","AI"};
-		String[] produttore = {"GSK","GSK","DSS","GHR"};
-		String[] formato = {"sciroppo","supposte","compresse","bustine"};
-		Integer[] quantita = {20,5,7,30};
-		O_Prodotto[] prodotti = null;  //se null, esce warning!? condivisione referenze (come un puntatore) o copia??
+		magazzinoCentrale = new O_Magazzino();
+		String[] id = {"ASP1","ASP2","DRO1","GAV1","HYA1","PLA1","TAC1","TAC2","VAL1","VOL1"};
+		String[] nome = {"Aspirine","Aspirine","DropStar","Gaviscon","Hyalistil","Plasil","Tachipirina","Tachipirina","Valium","Voltaren"};
+		String[] eccipiente = {"citrato","sodio","sodio","eritrosina","disodio","amido","magnesio","acesulfame","etanolo","gliceridi"};
+		String[] produttore = {"BAYER","BAYER","BRACCO","RECKITT","SIFI","LEPETIT","ACRAF","ACRAF","ROCHE","NOVARTIS"};
+		String[] formato = {"compresse","bustine","bustine","sciroppo","bustine","sciroppo","sciroppo","supposte","sciroppo","crema"};
+		Integer[] quantita = {20,5,7,40,30,43,12,1,14,3};
+		O_Prodotto[] prodotti = new O_Prodotto[id.length];
 		for(int i=0; i < id.length; i++){
 			prodotti[i] = new O_Prodotto(nome[i],eccipiente[i],produttore[i],formato[i],quantita[i]);
-			System.out.println("OK1");
 			magazzinoCentrale.magazzino.put(id[i],prodotti[i]);
-			System.out.println("OK2");
 		}
 	}
 	

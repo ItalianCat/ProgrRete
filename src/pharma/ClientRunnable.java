@@ -10,17 +10,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
-import java.net.MalformedURLException;
 import java.rmi.MarshalledObject;
 import java.rmi.Naming;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
-import java.rmi.activation.ActivationException;
 import java.util.Properties;
 import java.util.Scanner;
 
 import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.rmi.PortableRemoteObject;
 
 @SuppressWarnings("serial")
@@ -46,7 +41,7 @@ public class ClientRunnable implements Runnable, Serializable{
 			ex.printStackTrace();
 		}
 				
-		String selezione = "";
+		Integer selezione = -1;
 		try{
 			if(categoria){
 				System.out.println("\nRUNNABLE\n- Il client usa il protocollo JRMP.");
@@ -73,15 +68,24 @@ public class ClientRunnable implements Runnable, Serializable{
 								+ "\n\t3. Uscita");
 			try{
 				BufferedReader userIn = new BufferedReader(new InputStreamReader(System.in));
-				selezione = userIn.readLine();
+				try{
+					selezione = Integer.parseInt(userIn.readLine());
+					if(!(selezione >= 1 & selezione <=3)){
+						System.out.println("!!! E' necessario inserire un numero tra 1 e 3 !!!");
+						continue;
+					}
+				}catch(NumberFormatException g){
+					System.out.println("!!! E' necessario inserire un numero tra 1 e 3 !!!");
+					continue;
+				}
+				switch(selezione){
+					case 1: registra();break;
+					case 2: login();break;
+					case 3: System.exit(0);break;
+					default: System.out.println("La selezione non e' valida.");
+				}
 			}catch(IOException ex){
 				ex.printStackTrace();
-			}
-			switch(Integer.parseInt(selezione)){
-				case 1: registra();break;
-				case 2: login();break;
-				case 3: System.exit(0);break;
-				default: System.out.println("La selezione non e' valida.");
 			}
 		}
 	}
@@ -103,17 +107,17 @@ public class ClientRunnable implements Runnable, Serializable{
 						if(tipo.equalsIgnoreCase("cliente") || 
 							tipo.equalsIgnoreCase("farmacia"))
 							break;
-						System.out.println("Attenzione: le opzioni accettate per i client JRMP sono solo cliente e farmacia.");
+						System.out.println("!!! Le opzioni accettate per i client JRMP sono solo cliente e farmacia !!!");
 					
 					}else{		//IIOP
-						System.out.println("Il tipo di utente sara' amministratore (default per client su protocollo IIOP).");
+						System.out.println("\nIl tipo di utente sara' amministratore (default per client su protocollo IIOP).");
 						tipo = "amministratore";
 						break;
 					}					
 				}
 				flag = proxy.registraUtente(user, new O_UserData(password, tipo));
 				if(flag)
-					System.out.println("La registrazione e' avvenuta con successo.\n");
+					System.out.println("\nLa registrazione e' avvenuta con successo.\n");
 				else
 					System.out.println("Impossibile completare la registrazione. Lo user risulta gia' presente nel sistema.");
 			}catch(Exception ex){
@@ -131,6 +135,10 @@ public class ClientRunnable implements Runnable, Serializable{
 			System.out.print("Password: ");
 			password = userIn.readLine();
 			MarshalledObject<ClientMobileAgent_I> obj = (MarshalledObject<ClientMobileAgent_I>)proxy.login(user, password);
+			if(obj == null){
+				System.out.println("!!! Lo user o la password indicati sono errati !!!\n");
+				return; //nullpointerex se errato
+			}
 			ClientMobileAgent_I agent = (ClientMobileAgent_I)obj.get();
 			System.out.println("\nE' stato ottenuto il mobile agent dal server Proxy.");
 			System.out.println("Il mobile agent viene mandato in esecuzione presso il client.");
@@ -140,7 +148,18 @@ public class ClientRunnable implements Runnable, Serializable{
 		}
 	}
 
-	/*Coi Serializable  va fatto l'override di equals() e hashCode() solo se necessario. Non serve
-	 * se il server non controlla mai l'uguaglianza tra le istanze e nemmeno le immagazzina in un
-	 * oggetto contenitore che si basa sui loro hashcode*/
+	@Override
+	public boolean equals(Object obj){
+		if(!(obj instanceof ClientRunnable) || obj == null){
+			return false;
+		}else{
+			return true;
+		}
+	}
+	
+	@Override
+	public int hashCode(){
+		return getClass().hashCode();
+	}
+	
 }

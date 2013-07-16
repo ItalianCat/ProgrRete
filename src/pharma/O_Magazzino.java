@@ -23,8 +23,13 @@ public class O_Magazzino implements Serializable{
 	}
 		
 	public O_Prodotto vendiProdotto(String id, Integer qta){
-		System.out.println(magazzino.get(id).nome);
+		O_Prodotto prodotto = null;
 		if(aggiornaMagazzino(id, new O_Prodotto(magazzino.get(id),qta), false)){
+			if(magazzino.get(id).quantita == 0){
+				prodotto = new O_Prodotto(magazzino.get(id), qta);
+				magazzino.remove(id);
+				return prodotto;
+			}
 			return new O_Prodotto(magazzino.get(id), qta);
 		}else
 			return null;
@@ -39,9 +44,9 @@ public class O_Magazzino implements Serializable{
 	
 	public String toStringMagazzino(){
 		String risultato = "\nProdotti disponibili presso il magazzino centrale:\n"
-				+ "ID\tNome\tEccipiente\tProduttore\tFormato\tQtaDispo\n";
+				+ "ID       Nome          Eccipiente    Produttore    Formato       QtaDispo     \n";
 		for(String id: magazzino.keySet()){
-			risultato += id + "\t" + magazzino.get(id).toStringProdotto() + "\n";
+			risultato += id + "     " + magazzino.get(id).toStringProdotto() + "\n";
 		}
 		return risultato;
 	}
@@ -55,14 +60,15 @@ public class O_Magazzino implements Serializable{
 		}else{ //togli qta
 			if(prodotto.quantita <= magazzino.get(id).quantita){
 				magazzino.get(id).quantita -= prodotto.quantita;
-				if(magazzino.get(id).quantita == 0){
-					magazzino.remove(id);
-				}
 			}else{
 				return false;
 			}
 		}
 		return true;
+	}
+
+	public void eliminaProdotto(String id){
+		magazzino.remove(id);
 	}
 	
 	@Override
@@ -78,4 +84,5 @@ public class O_Magazzino implements Serializable{
 	public int hashCode(){
 		return magazzino.hashCode();
 	}
+
 }

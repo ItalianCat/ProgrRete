@@ -12,4 +12,5 @@ public interface ServerFarmacia_I extends Remote{
 	public boolean deregistra(String nome) throws RemoteException;
 	public O_Prodotto vendiProdotto(String id, Integer qta) throws RemoteException;
 	public String toStringMagazzinoCentrale() throws RemoteException;
+	public O_Prodotto checkProdottoAMagazzino(String id) throws RemoteException;
 }

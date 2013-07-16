@@ -5,7 +5,6 @@
 package pharma;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.rmi.MarshalledObject;
 import java.rmi.RemoteException;
 import java.rmi.activation.ActivationException;
@@ -15,8 +14,7 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.rmi.PortableRemoteObject;
 
-@SuppressWarnings("serial")
-public class ServProxy implements ServProxy_I, ServProxyOff_I, Serializable{
+public class ServProxy implements ServProxy_I{ //, Serializable
 	
 	ServAutenticazione_I actserveraut = null;
 	
@@ -67,8 +65,6 @@ public class ServProxy implements ServProxy_I, ServProxyOff_I, Serializable{
 			PortableRemoteObject.unexportObject(boot);
 			System.out.println("\nIl server Proxy ha deregistrato dai servizi di naming e " +
 					"de-esportato dualmente il server di Bootstrap.");
-			
-			//server autenticazione e centrale senza proxy sono irraggiungibili pero' se il client ha salvato la referenza...
 			System.out.println("\nIl server Proxy sta per chiedere lo spegnimento del server di autenticazione.");
 			actserveraut.spegni();
 		

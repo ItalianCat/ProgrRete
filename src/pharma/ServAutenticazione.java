@@ -23,10 +23,15 @@ import java.util.Vector;
 public class ServAutenticazione extends Activatable implements ServAutenticazione_I, Unreferenced{
 	public Remote stubServerCentrale = null;
 	public O_ElencoUser elencou = null;
+	public ActivationID id = null;
+	public ActivationSystem actS = null;
+	public ActivationDesc actD = null;
+	public ActivationDesc actDdefault = null;
 
 	@SuppressWarnings("unchecked")
 	public ServAutenticazione(ActivationID id, MarshalledObject<Vector<Object>> obj) throws ActivationException, ClassNotFoundException, IOException{
-		super(id, 0);//, new RMISSLClientSocketFactory(), new RMISSLServerSocketFactory());  //numero!!!
+		super(id, 0, new RMISSLClientSocketFactory(), new RMISSLServerSocketFactory()); //numero?
+		this.id = id;
 		if(obj == null){
 			System.out.println("Il server di autenticazione e' alla sua prima attivazione, pertanto, " +
 					"la referenza al server centrale viene letta da file e viene creato un elenco " +
@@ -44,9 +49,9 @@ public class ServAutenticazione extends Activatable implements ServAutenticazion
 			Vector<Object> contenitore = new Vector<Object>();
 			contenitore.add(0, stubServerCentrale);
 			contenitore.add(1, elencou);
-			ActivationSystem actS = ActivationGroup.getSystem();
-			ActivationDesc actD = actS.getActivationDesc(id);
-			ActivationDesc actDdefault = new ActivationDesc(actD.getGroupID(), actD.getClassName(), actD.getLocation(), new MarshalledObject<Vector<Object>>(contenitore));
+			actS = ActivationGroup.getSystem();
+			actD = actS.getActivationDesc(id);
+			actDdefault = new ActivationDesc(actD.getGroupID(), actD.getClassName(), actD.getLocation(), new MarshalledObject<Vector<Object>>(contenitore));
 			actD = actS.setActivationDesc(id, actDdefault);
 			System.out.println("L'ActivationDesc del server di autenticazione e' stato aggiornato " +
 					"in modo da contenere le nuove informazioni di default per le future attivazioni.");
@@ -88,9 +93,6 @@ public class ServAutenticazione extends Activatable implements ServAutenticazion
 			}
 			System.out.println("Il server di autenticazione ha passato il mobile agent " +
 					"al client con il riferimento al server centrale.");
-			System.out.println("STUB1 = " + stubServerCentrale);
-			((ServerFarmacia_I) stubServerCentrale).toStringMagazzinoCentrale();
-			System.out.println("STUB2 = " + stubServerCentrale);
 			return new MarshalledObject<ClientMobileAgent_I>(agent);
 		}
 		return null;
@@ -123,10 +125,19 @@ public class ServAutenticazione extends Activatable implements ServAutenticazion
 	}
 		
 	@Override
-	public void unreferenced(){
+	public void unreferenced(){ //bisogna aspettare che la referenza presso il proxy sia gc
 		try {
-			if(inactive(getID()))
+			if(inactive(getID())){
+				System.out.println("Il server di autenticazione sta per essere garbage collected. Viene " +
+						"aggiornato l'ActivationDesc con l'elenco degli utenti" +
+						"registrati attuali per passare i dati alla prossima attivazione.");
+				Vector<Object> contenitore = new Vector<Object>();
+				contenitore.add(0, stubServerCentrale);
+				contenitore.add(1, elencou);
+				actDdefault = new ActivationDesc(actD.getGroupID(), actD.getClassName(), actD.getLocation(), new MarshalledObject<Vector<Object>>(contenitore));
+				actD = actS.setActivationDesc(id, actDdefault);
 				System.gc();
+			}
 		}catch(Exception ex){
 			ex.printStackTrace();
 		}
