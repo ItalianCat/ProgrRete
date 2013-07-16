@@ -37,7 +37,7 @@ public class ServAutenticazione extends Activatable implements ServAutenticazion
 					"la referenza al server centrale viene letta da file e viene creato un elenco " +
 					"degli utenti vuoto.");
 			try{
-				InputStream in = new URL("file:///javarmi/StubServerCentrale").openStream();
+				InputStream in = new URL("file://"+Input.percorso+"/javarmi/StubServerCentrale").openStream();
 				ObjectInputStream inObj = new ObjectInputStream(in);
 				stubServerCentrale = ((MarshalledObject<Remote>)inObj.readObject()).get();
 				inObj.close();

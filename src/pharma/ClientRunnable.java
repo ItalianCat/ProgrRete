@@ -18,6 +18,15 @@ import java.util.Scanner;
 import javax.naming.InitialContext;
 import javax.rmi.PortableRemoteObject;
 
+/**
+ * Una istanza di questa classe viene passata dal server di bootstrap al client che invoca 
+ * il metodo getClientxxx(). Rappresenta il codice che il client deve eseguire per interagire 
+ * col sistema. Viene lanciato col metodo run() che:
+ * - partendo da un file "IPserver.txt", che deve essere inserito nella cartella "javarmi", 
+ * estrae l'indirizzo IP dell'host dei server e lo usa fare una lookup del server proxy;
+ * - definisce il menu che deve essere visualizzato da un client per accedere al sistema;
+ * - invoca i metodi remoti del server proxy per registrare e loggare i client al sistema.
+ */
 @SuppressWarnings("serial")
 public class ClientRunnable implements Runnable, Serializable{
 	private boolean categoria;
@@ -26,10 +35,24 @@ public class ClientRunnable implements Runnable, Serializable{
 	private String password = "";
 	private String tipo = "";
 	
+	/**
+	 * Questo costruttore fornisce un'istanza della classe specifica per un determinato tipo 
+	 * di client. 
+	 * @param categoria rappresenta il tipo di client: se true individua un client che usa il 
+	 * protocollo JRMP, se false un client su protocollo IIOP
+	 */
 	public ClientRunnable(boolean categoria){
 		this.categoria = categoria;
 	}
 	
+	/**
+	 * Questo metodo, partendo da un file "IPserver.txt", che deve essere inserito nella 
+	 * cartella "javarmi", estrae l'indirizzo IP dell'host dei server e lo usa fare una 
+	 * lookup del server proxy sul servizio di naming compatibile col protocollo in uso dal 
+	 * client. Poi definisce il menu che deve essere visualizzato da un client per accedere 
+	 * al sistema. Infine invoca dei metodi locali che a loro volta richiamano i metodi 
+	 * remoti del server proxy per registrare e loggare i client al sistema.
+	 */
 	@Override
 	public void run() {
 		String ip ="";
@@ -90,6 +113,13 @@ public class ClientRunnable implements Runnable, Serializable{
 		}
 	}
 
+	/**
+	 * Questo metodo consente all'utente di registrarsi presso il sistema, attraverso il 
+	 * recupero di informazioni da riga di comando. Se l'utente e' su protocollo IIOP, non 
+	 * mostra la scelta della tipologia di client perche' l'unico client su IIOP e' di tipo 
+	 * amministratore. Se, invece, il client e' su protocollo JRMP, viene consentito di 
+	 * scegliere tra utente di tipo cliente finale e di tipo farmacia.
+	 */
 	private void registra(){
 		boolean flag = false;
 		while(!flag){
@@ -126,6 +156,13 @@ public class ClientRunnable implements Runnable, Serializable{
 		}
 	}
 
+	/**
+	 * Questo metodo consente di effettuare il login al sistema, usando i dati concordati 
+	 * nella sessione di registrazione. I dati sono passati al proxy che a sua volta li passa 
+	 * al server di autenticazione per controllare le credenziali del client. Se tutto va a 
+	 * buon fine, il client riceve un mobile agent specifico per il tipo di client e che 
+	 * sara' mandato in esecuzione con il metodo act(). 
+	 */
 	private void login(){
 		try {
 			System.out.println("Si e' scelto di eseguire il login al sistema.");
@@ -137,7 +174,7 @@ public class ClientRunnable implements Runnable, Serializable{
 			MarshalledObject<ClientMobileAgent_I> obj = (MarshalledObject<ClientMobileAgent_I>)proxy.login(user, password);
 			if(obj == null){
 				System.out.println("!!! Lo user o la password indicati sono errati !!!\n");
-				return; //nullpointerex se errato
+				return;
 			}
 			ClientMobileAgent_I agent = (ClientMobileAgent_I)obj.get();
 			System.out.println("\nE' stato ottenuto il mobile agent dal server Proxy.");

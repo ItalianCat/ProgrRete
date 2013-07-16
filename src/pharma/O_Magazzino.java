@@ -43,7 +43,7 @@ public class O_Magazzino implements Serializable{
 	}
 	
 	public String toStringMagazzino(){
-		String risultato = "\nProdotti disponibili presso il magazzino centrale:\n"
+		String risultato = "\nProdotti disponibili presso il magazzino:\n"
 				+ "ID       Nome          Eccipiente    Produttore    Formato       QtaDispo     \n";
 		for(String id: magazzino.keySet()){
 			risultato += id + "     " + magazzino.get(id).toStringProdotto() + "\n";

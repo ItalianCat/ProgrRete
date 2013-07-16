@@ -5,8 +5,6 @@
 package pharma;
 import java.io.*;
 import java.rmi.MarshalledObject;
-import java.rmi.RemoteException;
-import java.rmi.activation.ActivationException;
 
 /**
  * Questa classe definisce un mobile agent che gestisce le operazioni di competenza
@@ -98,7 +96,7 @@ public class ClientCliente implements ClientMobileAgent_I, Serializable{
 	 * remoto (mostraFarmacie) per visualizzare l'elenco delle farmacie registrate.
 	 */
 	private void mostraFarmacie(){
-		System.out.println("Si e' scelto di visualizzare l'elenco delle farmacie registratre presso il server centrale.");
+		System.out.println("Si e' scelto di visualizzare l'elenco delle farmacie registrate presso il server centrale.");
 		try{
 			System.out.println(remactserver.mostraFarmacie());
 		}catch(Exception ex){
@@ -161,7 +159,7 @@ public class ClientCliente implements ClientMobileAgent_I, Serializable{
 	 * (checkFarmaciaRegistrata) per controllare se la farmacia indicata e' registrata e 
 	 * poi il metodo (toStringMagazzino) per visualizzare il magazzino della farmacia.
 	 */
-	private void mostraProdottiFarmacia(){ // throws ClassNotFoundException, ActivationException
+	private void mostraProdottiFarmacia(){
 		String nome = "";
 		ClientFarmacia_I farmacia = null;
 		System.out.println("Si e' scelto di visualizzare i prodotti disponibili presso una farmacia.");

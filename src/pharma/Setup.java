@@ -33,9 +33,13 @@ public class Setup{
 	public static void main(String args[]){
 		
 		String policyGroup = Input.percorso + "/javarmi/pharma/group.policy";
-		String implCodebase = "file:///javarmi/"; //IMPORTANTE la barra dopo javarmi //ERA "http://192.168.0.201:8000/common/";
+		String implCodebase = "file://"+Input.percorso+"/public_html/common/"; 
+		//String implCodebase = "file://"+Input.percorso+"/javarmi/"; //IMPORTANTE la barra dopo javarmi
+		//ERA "http://192.168.0.201:8000/common/";
+			
 		Remote stubServ = null;
-		ServAutenticazione_I stubServAut = null;
+		Remote stubServAut = null;
+		//ServAutenticazione_I stubServAut = null;
 		String ip = "";
 		try{
 			ip = java.net.InetAddress.getLocalHost().getHostAddress();
@@ -50,7 +54,7 @@ public class Setup{
 			Properties prop0 = new Properties();
 			prop0.put("java.security.policy", policyGroup);
 			prop0.put("pharma.impl.codebase", implCodebase);
-			prop0.put("java.rmi.server.hostname", ip);
+			//prop0.put("java.rmi.server.hostname", ip);
 			prop0.put("java.class.path", "no_classpath");
 			
 			ActivationSystem sistAtt = ActivationGroup.getSystem();
@@ -90,7 +94,8 @@ public class Setup{
 			System.out.println("- Il gruppo di attivazione del server di autenticazione e' stato registrato col sistema di attivazione.");
 			ActivationDesc servAut = new ActivationDesc(IDgruppoServAut, "pharma.ServAutenticazione", implCodebase, null);
 			System.out.println("- E' stato creato l'Activation Description associato al server di autenticazione.");
-			stubServAut = (ServAutenticazione_I)Activatable.register(servAut);
+			stubServAut = (Remote)Activatable.register(servAut);
+			//stubServAut = (ServAutenticazione_I)Activatable.register(servAut);
 			System.out.println("- Il server di autenticazione e' stato registrato col sistema di attivazione. " +
 					"Ora e' possibile accedere al server di autenticazione attraverso lo stub:\n" + stubServAut);
 			try{
@@ -116,9 +121,9 @@ public class Setup{
 		try{
 			System.setProperty("javax.net.ssl.trustStore", "truststore.jks");
 			System.setProperty("javax.net.ssl.trustStorePassword", "giuliana");
-			ServProxy proxyServ = new ServProxy(stubServAut);
+			ServProxy proxyServ = new ServProxy((ServAutenticazione_I)stubServAut);
 			System.out.println("\nSERVER PROXY:\n- E' stato creato un server Proxy con lo stub del " +
-					"server di autenticazione ed e' stato esportato dualmente.");
+					"server di autenticazione ed e' stato esportato dualmente.\n" + stubServAut);
 			
 			Properties prop3 = new Properties();
 			prop3.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.rmi.registry.RegistryContextFactory");

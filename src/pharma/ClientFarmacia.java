@@ -5,8 +5,15 @@
 package pharma;
 
 import java.io.BufferedReader;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.rmi.MarshalledObject;
 import java.rmi.RMISecurityManager;
@@ -19,6 +26,7 @@ public class ClientFarmacia extends UnicastRemoteObject implements ClientMobileA
 	private String nomeFarmacia = "";
 	public O_Magazzino stock = null;
 	private ServerFarmacia_I remactserver = null;
+	private boolean flag = false;
 	
 	/**
 	 * Questo costruttore e' invocato dal server di autenticazione al momento del login.
@@ -40,14 +48,39 @@ public class ClientFarmacia extends UnicastRemoteObject implements ClientMobileA
 	}
 	
 	/**
-	 * Questo metodo visualizza il menu per le farmacie.
+	 * Questo metodo visualizza il menu per le farmacie. Al primo login, salva su file il 
+	 * magazzino della farmacia. Ai login successivi, carica da file il magazzino della 
+	 * farmacia.
 	 */
+	@SuppressWarnings("unchecked")
 	@Override  //da mobile agent interface
 	public void act(){
+		Integer selezione = -1;
 		if(System.getSecurityManager() == null){
 			System.setSecurityManager(new RMISecurityManager());
 		}
-		Integer selezione = -1;
+		if(!flag){//se non esiste il file del magazzino, lo creo
+			try{
+				OutputStream out = new FileOutputStream("Magazzino"+nomeFarmacia);
+				ObjectOutputStream outObj = new ObjectOutputStream(out);
+				outObj.writeObject(new MarshalledObject<O_Magazzino>(stock));
+				outObj.flush();
+				outObj.close();
+				flag = true;
+			}catch(IOException ex){
+				System.out.println("!!! Errore nel salvataggio del magazzino della farmacia su file !!!");
+				ex.printStackTrace();
+			}
+		}
+		try{//carico il file
+			InputStream in = new URL("file://"+Input.percorso+"/javarmi/Magazzino"+nomeFarmacia).openStream();
+			ObjectInputStream inObj = new ObjectInputStream(in);
+			MarshalledObject<O_Magazzino> objStock = (MarshalledObject<O_Magazzino>)inObj.readObject();
+			stock = (O_Magazzino)objStock.get();
+			inObj.close();
+		}catch(Exception ex){
+			ex.printStackTrace();
+		}
 		while(true){
 			System.out.println("\nMenu Farmacia\nSelezionare l'opzione desiderata:\n"
 								+ "\t1. Registrazione della farmacia presso il server centrale\n"
@@ -72,9 +105,9 @@ public class ClientFarmacia extends UnicastRemoteObject implements ClientMobileA
 					case 1: registraPressoMagazzinoCentrale();break;
 					case 2: mostraProdottiMagazzinoCentrale();break;
 					case 3: compraProdottoMagazzinoCentrale();break;
-					case 4: mostraProdottiMagazzinoFarmacia();break;
+					case 4: System.out.println(toStringMagazzino());break;
 					case 5: chiudiFarmacia();break;
-					case 6: System.exit(0);break;
+					case 6: esciEsalva();break;
 					default: System.out.println("!!! La selezione non e' valida !!!");
 				}
 			}catch(Exception ex){
@@ -85,7 +118,8 @@ public class ClientFarmacia extends UnicastRemoteObject implements ClientMobileA
 
 	//TRANSAZIONI COL SERVER CENTRALE
 	/**
-	 * 
+	 * Questo metodo registra la farmacia presso il server centrale, usando il metodo 
+	 * remoto (registra).
 	 */
 	private void registraPressoMagazzinoCentrale(){
 		System.out.println("Si e' scelto di registrare la farmacia presso il magazzino centrale.");
@@ -112,6 +146,13 @@ public class ClientFarmacia extends UnicastRemoteObject implements ClientMobileA
 		}
 	}
 	
+	/**
+	 * Questo metodo usa la referenza la server centrale per acquistare dei prodotti.
+	 * Fa uso di tre metodi remoti: il primo (toStringMagazzinoCentrale) mostra i prodotti 
+	 * disponibili; il secondo (checkProdottoAMagazzino) controlla se il prodotto scelto 
+	 * esiste nel magazzino e l'ultimo (vendiProdotto) vende il prodotto prelevandolo 
+	 * dal magazzino centrale. Alla fine si aggiorna il magazzino della farmacia.
+	 */
 	private void compraProdottoMagazzinoCentrale(){
 		String id = "";
 		Integer quantita = 0;
@@ -155,12 +196,10 @@ public class ClientFarmacia extends UnicastRemoteObject implements ClientMobileA
 		}
 	}
 	
-	@Override
-	public O_Prodotto vendiProdotto(String id, Integer qta){
-		System.out.println("La farmacia sta per vendere " + qta + (qta==1?" pezzo":" pezzi") + " del prodotto " + id + ".");
-		return stock.vendiProdotto(id, qta);
-	}
-	
+	/**
+	 * Questo metodo consente di chiudere definitivamente una farmacia, de-registrandola 
+	 * dal server centrale col metodo remoto (deregistra) e de-esportandola. 
+	 */
 	private void chiudiFarmacia(){
 		System.out.println("Si e' scelto di chiudere definitivamente la farmacia.");
 		try{
@@ -177,18 +216,35 @@ public class ClientFarmacia extends UnicastRemoteObject implements ClientMobileA
 	
 	//TRANSAZIONI COL CLIENTE
 	
+	/**
+	 * Questo metodo visualizza una tabella con le disponibilita' di magazzino.
+	 */
 	@Override
 	public String toStringMagazzino(){
 		System.out.println("La farmacia sta per visualizzare il proprio magazzino.\n");
 		return stock.toStringMagazzino();
 	}
 	
+	/**
+	 * Questo metodo consente di vendere un prodotto ad un cliente finale. Invoca il 
+	 * metodo vendiProdotto dell'oggetto O_Magazzino.
+	 * @param id e' il codice identificativo del prodotto
+	 * @param qta e' la quantita' da vendere del prodotto
+	 * @return oggetto che rappresenta il prodotto venduto 
+	 */
 	@Override
 	public O_Prodotto venditaProdotto(String id, Integer qta){
 		System.out.println("La farmacia sta per vendere " + qta + (qta==1?" pezzo":" pezzi") + " del prodotto " + id + ".");
 		return stock.vendiProdotto(id, qta);
 	}
-
+	
+	/**
+	 * Questo metodo consente di verificare se un prodotto e' presente in magazzino, 
+	 * invocando il metodo checkProdottoAMagazzino dell'oggetto O_Magazzino.
+	 * @param id e' il codice identificativo del prodotto
+	 * @return oggetto che rappresenta il prodotto che si e' verificato essere a magazzino, 
+	 * null se non e' presente a magazzino 
+	 */
 	@Override
 	public O_Prodotto checkProdottoAMagazzino(String id){ //throws RemoteException?
 		System.out.println("La farmacia sta verificare se il prodotto " + id + "e' presente in magazzino.");
@@ -196,10 +252,24 @@ public class ClientFarmacia extends UnicastRemoteObject implements ClientMobileA
 	}
 	
 	//TRANSAZIONE INTERNA ALLA FARMACIA
+
+	/**
+	 * Questo metodo consente di effettuare il logout dal sistema della farmacia dopo 
+	 * aver salvato su file il magazzino della farmacia, per futuri login.
+	 */
+	private void esciEsalva() {
+		try{
+			OutputStream out = new FileOutputStream("Magazzino"+nomeFarmacia);
+			ObjectOutputStream outObj = new ObjectOutputStream(out);
+			outObj.writeObject(new MarshalledObject<O_Magazzino>(stock));
+			outObj.flush();
+			outObj.close();
+		}catch(IOException ex){
+			System.out.println("!!! Errore nel salvataggio del magazzino della farmacia su file !!!");
+			ex.printStackTrace();
+		}
+		System.exit(0);
 		
-	private void mostraProdottiMagazzinoFarmacia() {
-		System.out.println("La farmacia sta per visualizzare il proprio magazzino."
-					+ stock.toStringMagazzino());
 	}
 
 	@Override

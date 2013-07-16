@@ -202,7 +202,7 @@ public class ClientAmministratore implements ClientMobileAgent_I, Serializable{
 		try{
 			System.out.println("Si e' scelto di caricare dei dati di esempio nel magazzino centrale.");
 			remactserver.caricaEsempio();
-			System.out.println("I dati di esempio sono stati caricati correttamente nel magazzino centrale.\n");
+			System.out.println("\nI dati di esempio sono stati caricati correttamente nel magazzino centrale.\n");
 		}catch(RemoteException ex){
 			ex.printStackTrace();
 		}

@@ -4,9 +4,19 @@
 */
 package pharma;
 
+/**
+ * Questa classe ha il solo scopo di facilitare il test dell'applicazione attraverso il 
+ * pre-caricamento nel magazzino centrale di dieci tipologie di prodotti con relativa quantita'.
+ * E' il client di tipo Amministratore che dispone di un metodo per caricare nel magazzino 
+ * centrale i dati di esempio.
+ */
 public class Esempio{
+	
 	public O_Magazzino magazzinoCentrale = null;
 	
+	/**
+	 * Questo costruttore crea un magazzino di esempio utile a scopo di test.
+	 */
 	public Esempio(){
 		magazzinoCentrale = new O_Magazzino();
 		String[] id = {"ASP1","ASP2","DRO1","GAV1","HYA1","PLA1","TAC1","TAC2","VAL1","VOL1"};
