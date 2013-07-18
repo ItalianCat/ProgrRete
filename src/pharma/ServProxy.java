@@ -1,6 +1,6 @@
 /**
 * @author Giuliana Mazzi
-* @version 1.0 del 9 luglio 2013
+* @version 1.0 del 18 luglio 2013
 */
 package pharma;
 
@@ -14,22 +14,47 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.rmi.PortableRemoteObject;
 
-public class ServProxy implements ServProxy_I{ //, Serializable
+/**
+ * Questa classe definisce i metodi del server proxy che sono accessibili alle istanze della 
+ * classe ClientRunnable e gli ultimi due all'utente amministratore.
+ * Il server viene esportato dualmente quindi non estende ne' UnicastRemoteObject, ne' 
+ * PortableRemoteObject, ne' Activatable. 
+ */
+public class ServProxy implements ServProxy_I{
 	
 	ServAutenticazione_I actserveraut = null;
 	
+	/**
+	 * Questo costruttore esporta dualmente il server proxy per i due protocolli 
+	 * JRMP e IIOP.
+	 */
 	public ServProxy(ServAutenticazione_I actserveraut) throws RemoteException{
 		this.actserveraut = actserveraut;
 		UnicastRemoteObject.exportObject(this,0);
 		PortableRemoteObject.exportObject(this);
 	}
 	
+	/**
+	 * Questo metodo consente di chiedere al server proxy di chiedere al server di autenticazione 
+	 * di registrare un nuovo utente nel sistema.
+	 * @param user e' lo username dell'utente da registrare
+	 * @param data sono i dati rilevanti che descrivono un utente, tra cui la password
+	 * @return ritorna true se la registrazione e' andata a buon fine, false altrimenti
+	 */
 	@Override
 	public boolean registraUtente(String user, O_UserData data) throws RemoteException, ActivationException, IOException, ClassNotFoundException{
 		System.out.println("\nIl server Proxy sta per chiedere al server di autenticazione " +
 				"la registrazione di un nuovo utente.");
 		return actserveraut.registraUtente(user, data);
 	}
+	
+	/**
+	 * Questo metodo consente di chiedere al server proxy di chiedere al server di autenticazione 
+	 * di loggare un utente nel sistema.
+	 * @param user e' lo username dell'utente da loggare
+	 * @param psw e' la password fornita dall'utente che si vuole registrare
+	 * @return ritorna true se l'utente e' stato loggato correttamente, false altrimenti
+	 */
 	@Override
 	public MarshalledObject<ClientMobileAgent_I> login(String user, String psw) throws RemoteException, ActivationException, IOException, ClassNotFoundException{
 		System.out.println("\nIl server Proxy sta per chiedere al server di autenticazione " +
@@ -37,6 +62,29 @@ public class ServProxy implements ServProxy_I{ //, Serializable
 		return actserveraut.login(user, psw);
 	}
 
+	/**
+	 * Questo metodo consente di chiedere al server proxy di chiedere al server di autenticazione 
+	 * di visualizzare la lista degli utenti registrati.
+	 * @return ritorna una stringa che rappresenta l'elenco degli utenti registrati presso il 
+	 * server di autenticazione.
+	 */
+	@Override
+	public String elencaUtenti(){
+		String risultato = "";
+		try{
+			 risultato = actserveraut.elencaUtenti();
+		}catch(RemoteException ex){
+			ex.printStackTrace();
+		}
+		return risultato;
+	}
+	
+	/**
+	 * Questo metodo consente di de-registrare dai sistemi di naming e de-esportare il server 
+	 * proxy e il server di bootstrap e di chiedere al server di autenticazione di 
+	 * de-esportarsi e de-registrarsi dal sistema di attivazione.
+	 * @return ritorna true se lo spegnimento e' andato a buon fine, false altrimenti
+	 */
 	@Override
 	public boolean spegniPBA() throws RemoteException {
 		try{	//server proxy
@@ -73,6 +121,5 @@ public class ServProxy implements ServProxy_I{ //, Serializable
 			ex.printStackTrace();
 		}
 		return false;
-	}
-	
+	}	
 }

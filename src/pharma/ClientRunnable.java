@@ -1,6 +1,6 @@
 /**
 * @author Giuliana Mazzi
-* @version 1.0 del 9 luglio 2013
+* @version 1.0 del 18 luglio 2013
 */
 package pharma;
 
@@ -105,7 +105,7 @@ public class ClientRunnable implements Runnable, Serializable{
 					case 1: registra();break;
 					case 2: login();break;
 					case 3: System.exit(0);break;
-					default: System.out.println("La selezione non e' valida.");
+					default: System.out.println("!!! La selezione non e' valida !!!");
 				}
 			}catch(IOException ex){
 				ex.printStackTrace();
@@ -149,7 +149,8 @@ public class ClientRunnable implements Runnable, Serializable{
 				if(flag)
 					System.out.println("\nLa registrazione e' avvenuta con successo.\n");
 				else
-					System.out.println("Impossibile completare la registrazione. Lo user risulta gia' presente nel sistema.");
+					System.out.println("!!! Impossibile completare la registrazione. Lo user " +
+							"risulta gia' presente nel sistema !!!");
 			}catch(Exception ex){
 				ex.printStackTrace();
 			}

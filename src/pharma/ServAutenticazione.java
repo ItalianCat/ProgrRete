@@ -1,6 +1,6 @@
 /**
 * @author Giuliana Mazzi
-* @version 1.0 del 9 luglio 2013
+* @version 1.0 del 18 luglio 2013
 */
 package pharma;
 
@@ -19,6 +19,11 @@ import java.rmi.server.UnicastRemoteObject;
 import java.rmi.server.Unreferenced;
 import java.util.Vector;
 
+/**
+ * Questa classe definisce le attivita' svolte dal server di autenticazione tramite i metodi 
+ * per la registrazione di un nuovo utente, per il login di un utente al sistema, per la 
+ * visualizzazione degli utenti registrati e per lo spegnimento forzoso del server.
+ */
 @SuppressWarnings("serial")
 public class ServAutenticazione extends Activatable implements ServAutenticazione_I, Unreferenced{
 	public Remote stubServerCentrale = null;
@@ -28,11 +33,21 @@ public class ServAutenticazione extends Activatable implements ServAutenticazion
 	public ActivationDesc actD = null;
 	public ActivationDesc actDdefault = null;
 
+	/**
+	 * Questo costruttore attiva il server di autenticazione. Alla prima attivazione il 
+	 * parametro obj e' vuoto e quindi: la referenza al server centrale e' letta da file, 
+	 * la lista di utenti viene creata vuota e viene settato l'oggetto obj nell'Activation 
+	 * Descriptor. Alle successive attivazioni referenza e lista sono lette dall'oggetto obj.
+	 * @param id e' il codice identificativo del gruppo di attivazione del server di 
+	 * autenticazione presso il sistema di attivazione
+	 * @param data e' lo stream di byte con la rappresentazione serializzata di un vettore 
+	 * che contiene la referenza al server centrale e la lista degli utenti registrati
+	 */
 	@SuppressWarnings("unchecked")
-	public ServAutenticazione(ActivationID id, MarshalledObject<Vector<Object>> obj) throws ActivationException, ClassNotFoundException, IOException{
+	public ServAutenticazione(ActivationID id, MarshalledObject<Vector<Object>> data) throws ActivationException, ClassNotFoundException, IOException{
 		super(id, 0, new RMISSLClientSocketFactory(), new RMISSLServerSocketFactory()); //numero?
 		this.id = id;
-		if(obj == null){
+		if(data == null){ //PRIMA ATTIVAZIONE
 			System.out.println("Il server di autenticazione e' alla sua prima attivazione, pertanto, " +
 					"la referenza al server centrale viene letta da file e viene creato un elenco " +
 					"degli utenti vuoto.");
@@ -46,38 +61,52 @@ public class ServAutenticazione extends Activatable implements ServAutenticazion
 				ex.printStackTrace();
 			}
 			elencou = new O_ElencoUser();
-			Vector<Object> contenitore = new Vector<Object>();
-			contenitore.add(0, stubServerCentrale);
-			contenitore.add(1, elencou);
+			Vector<Object> contenitoreOut = new Vector<Object>();
+			contenitoreOut.add(0, stubServerCentrale);
+			contenitoreOut.add(1, elencou);
 			actS = ActivationGroup.getSystem();
 			actD = actS.getActivationDesc(id);
-			actDdefault = new ActivationDesc(actD.getGroupID(), actD.getClassName(), actD.getLocation(), new MarshalledObject<Vector<Object>>(contenitore));
+			actDdefault = new ActivationDesc(actD.getGroupID(), actD.getClassName(), actD.getLocation(), new MarshalledObject<Vector<Object>>(contenitoreOut));
 			actD = actS.setActivationDesc(id, actDdefault);
 			System.out.println("L'ActivationDesc del server di autenticazione e' stato aggiornato " +
 					"in modo da contenere le nuove informazioni di default per le future attivazioni.");
-		}else{
+		}else{	//SUCCESSIVA ATTIVAZIONE
 			System.out.println("Il server di autenticazione e' gia' stato attivato in passato, quindi, " +
 					"la referenza al server centrale e la lista degli utenti sono estratti dal parametro " +
 					"MarshalledObject.");
-			Vector<Object> data = (Vector<Object>)(obj.get());
-			stubServerCentrale = (Remote)data.elementAt(0);
-			elencou = (O_ElencoUser)data.elementAt(1);
+			Vector<Object> contenitoreIn = (Vector<Object>)(data.get());
+			stubServerCentrale = (Remote)contenitoreIn.elementAt(0);
+			elencou = (O_ElencoUser)contenitoreIn.elementAt(1);
 		}
 		System.out.println("E' stato creato il server di Autenticazione.");
 	}
-
+	
+	/**
+	 * Questo metodo consente di registrare un nuovo utente presso il server di autenticazione
+	 * @param user e' lo username scelto dall'utente
+	 * @param data e' l'oggetto che contiene i dati rilevanti dell'utente, tra cui la password
+	 * @return ritorna true se la registrazione e' andata a buon fine, false altrimenti
+	 */
 	@Override
-	public boolean registraUtente(String user, O_UserData data) throws RemoteException, ActivationException, IOException, ClassNotFoundException{
+	public boolean registraUtente(String user, O_UserData data) throws RemoteException{
 		if(elencou.putUser(user, data)){
 			System.out.println("Il server di autenticazione ha registrato il nuovo utente.");
 			return true;
 		}else
 			return false;
 	}
-
+	
+	/**
+	 * Questo metodo consente di loggare un utente al sistema tramite il controllo delle credenziali 
+	 * di accesso.
+	 * @param user e' lo username dell'utente che vuole accedere al sistema
+	 * @param psw e' la password fornita dall'utente che vuole accedere al sistema
+	 * @return ritorna uno stream di byte che contengono il mobile agent specifico per la 
+	 * categoria a cui appartiene l'utente, null se il login non e' andato a buon fine
+	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-	public MarshalledObject<ClientMobileAgent_I> login(String user, String psw)	throws RemoteException, ActivationException, IOException, ClassNotFoundException{
+	public MarshalledObject<ClientMobileAgent_I> login(String user, String psw)	throws RemoteException, IOException{
 		String categoria = "";
 		ClientMobileAgent_I agent = null;
 		if(elencou.checkLogin(user, psw)){
@@ -87,7 +116,7 @@ public class ServAutenticazione extends Activatable implements ServAutenticazion
 				agent = new ClientCliente(new MarshalledObject((ServerCliente_I)stubServerCentrale));
 			}else if(categoria.equals("farmacia")){
 				agent = new ClientFarmacia(new MarshalledObject((ServerFarmacia_I)stubServerCentrale), user);
-				UnicastRemoteObject.unexportObject(agent, true);  //era stato esportato automaticamente
+				UnicastRemoteObject.unexportObject(agent, true);
 			}else if(categoria.equals("amministratore")){
 				agent = new ClientAmministratore(new MarshalledObject((ServerAmministratore_I)stubServerCentrale));
 			}
@@ -97,7 +126,25 @@ public class ServAutenticazione extends Activatable implements ServAutenticazion
 		}
 		return null;
 	}
+
+	/**
+	 * Questo metodo consente all'ammistratore di vedere gli utenti registrati tramite una 
+	 * chiamata al server proxy che a sua volta invoca questo metodo del server di autenticazione.
+	 * @return ritorna una stringa che rappresenta una tabella con i dati degli utenti registrati.
+	 */
+	@Override
+	public String elencaUtenti() throws RemoteException{
+		System.out.println("Il server di autenticazione sta per visualizzare la lista degli " +
+				"utenti registrati.");
+		return elencou.toStringUtenti();
+	}
 	
+	/**
+	 * Questo metodo consente all'amministratore di spegnere definitivamente il sistema tramite 
+	 * una chiamata al proxy che a sua volta invoca questo metodo del server di autenticazione 
+	 * per farlo spegnere, dopo aver salvato su disco l'elenco degli utenti registrati.
+	 * @return ritorna true se lo spegnimento e' andato a buon fine, false altrimenti
+	 */
 	@Override
 	public boolean spegni() throws RemoteException{
 		if(unexportObject(this, true)){
@@ -123,9 +170,14 @@ public class ServAutenticazione extends Activatable implements ServAutenticazion
 		}else
 			return false;
 	}
-		
+	
+	/**
+	 * Questo metodo definisce il comportamento del server di autenticazione qualora il sistema 
+	 * DGC avvisa che non ci sono piu' client remoti con referenze del server. Il metodo e' 
+	 * invocato dal runtime RMI.
+	 */
 	@Override
-	public void unreferenced(){ //bisogna aspettare che la referenza presso il proxy sia gc
+	public void unreferenced(){
 		try {
 			if(inactive(getID())){
 				System.out.println("Il server di autenticazione sta per essere garbage collected. Viene " +

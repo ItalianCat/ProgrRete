@@ -1,6 +1,6 @@
 /**
 * @author Giuliana Mazzi
-* @version 1.0 del 9 luglio 2013
+* @version 1.0 del 18 luglio 2013
 */
 package pharma;
 import java.io.*;
@@ -122,8 +122,10 @@ public class ClientCliente implements ClientMobileAgent_I, Serializable{
 			do{
 				System.out.println("Il magazzino centrale vende i seguenti prodotti:\n"
 						+ remactserver.toStringMagazzinoCentrale()
-						+ "\nInserire il codice identificativo del prodotto da comprare: ");
+						+ "\nInserire il codice identificativo del prodotto da comprare (x per uscire): ");
 				id = userIn.readLine();
+				if(id.equals("x") || id.equals("X"))
+					return;
 				if(remactserver.checkProdottoAMagazzino(id) == null){
 					System.out.print("!!! Il codice scelto non e' presente in magazzino !!!\n\n");
 				}else{
@@ -134,11 +136,13 @@ public class ClientCliente implements ClientMobileAgent_I, Serializable{
 				System.out.print("Inserire la quantita' da comprare: ");
 				try{
 					quantita = Integer.parseInt(userIn.readLine());
+					if(quantita == 0)
+						return;
 					if(!(quantita >= 1)){
-						System.out.println("!!! E' necessario inserire un numero maggiore di 0 !!!");
+						System.out.println("!!! E' necessario inserire almeno 1 come quantita' !!!");
 					}
 				}catch(NumberFormatException g){
-					System.out.println("!!! E' necessario inserire un numero maggiore di 0 !!!");
+					System.out.println("!!! E' necessario inserire un numero !!!");
 				}
 			}while(!(quantita>=1));
 			acquistato = remactserver.vendiProdotto(id, quantita);
@@ -197,6 +201,11 @@ public class ClientCliente implements ClientMobileAgent_I, Serializable{
 		O_Prodotto acquistato = null;
 		boolean ok = false;
 		System.out.println("Si e' scelto di comprare un prodotto da una farmacia.");
+		try{
+			System.out.println(remactserver.mostraFarmacie());
+		}catch(Exception ex){
+			ex.printStackTrace();
+		}
 		System.out.print("Digitare il nome della farmacia: ");
 		try{
 			BufferedReader userIn = new BufferedReader(new InputStreamReader(System.in));
@@ -211,8 +220,10 @@ public class ClientCliente implements ClientMobileAgent_I, Serializable{
 			do{
 				System.out.print("La farmacia " + nome + " vende i seguenti prodotti:\n"
 						+ farmacia.toStringMagazzino()
-						+ "\nInserire il codice identificativo del prodotto da comprare: ");
+						+ "\nInserire il codice identificativo del prodotto da comprare (x per uscire): ");
 				id = userIn.readLine();
+				if(id.equals("x") || id.equals("X"))
+					return;
 				if(farmacia.checkProdottoAMagazzino(id) == null){
 					System.out.print("!!! Il codice scelto non e' presente in magazzino !!!\n");
 				}else{
@@ -223,11 +234,13 @@ public class ClientCliente implements ClientMobileAgent_I, Serializable{
 				System.out.print("Inserire la quantita' da comprare: ");
 				try{
 					quantita = Integer.parseInt(userIn.readLine());
+					if(quantita == 0)
+						return;
 					if(!(quantita >= 1)){
-						System.out.println("!!! E' necessario inserire un numero maggiore di 0 !!!");
+						System.out.println("!!! E' necessario inserire almeno 1 come quantita' !!!");
 					}
 				}catch(NumberFormatException g){
-					System.out.println("!!! E' necessario inserire un numero maggiore di 0 !!!");
+					System.out.println("!!! E' necessario inserire un numero !!!");
 				}
 			}while(!(quantita>=1));
 			acquistato = farmacia.venditaProdotto(id, quantita);

@@ -1,6 +1,6 @@
 /**
 * @author Giuliana Mazzi
-* @version 1.0 del 9 luglio 2013
+* @version 1.0 del 18 luglio 2013
 */
 package pharma;
 
@@ -20,6 +20,15 @@ import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
 import java.rmi.server.*;
 
+/**
+ * Questa classe definisce un mobile agent che gestisce le operazioni di competenza
+ * di una farmacia, quali:
+ * - registrare la farmacia presso il magazzino centrale;
+ * - vedere i prodotti presenti nel magazzino centrale;
+ * - acquistare un prodotto dal magazzino centrale;
+ * - vedere i prodotti presenti nel magazzino della farmacia;
+ * - chiudere la farmacia definitivamente.
+ */
 @SuppressWarnings("serial")
 public class ClientFarmacia extends UnicastRemoteObject implements ClientMobileAgent_I, ClientFarmacia_I, Serializable{
 
@@ -73,7 +82,7 @@ public class ClientFarmacia extends UnicastRemoteObject implements ClientMobileA
 			}
 		}
 		try{//carico il file
-			InputStream in = new URL("file://"+Input.percorso+"/javarmi/Magazzino"+nomeFarmacia).openStream();
+			InputStream in = new URL("file://"+System.getProperty("user.dir")+"/Magazzino"+nomeFarmacia).openStream();
 			ObjectInputStream inObj = new ObjectInputStream(in);
 			MarshalledObject<O_Magazzino> objStock = (MarshalledObject<O_Magazzino>)inObj.readObject();
 			stock = (O_Magazzino)objStock.get();
@@ -84,7 +93,7 @@ public class ClientFarmacia extends UnicastRemoteObject implements ClientMobileA
 		while(true){
 			System.out.println("\nMenu Farmacia\nSelezionare l'opzione desiderata:\n"
 								+ "\t1. Registrazione della farmacia presso il server centrale\n"
-								+ "\t2. Elenco prodotti disponibili presso il server centrale\n"
+								+ "\t2. Elenco prodotti disponibili presso il magazzino centrale\n"
 								+ "\t3. Acquisto di un prodotto dal magazzino centrale\n"
 								+ "\t4. Elenco prodotti disponibili presso la farmacia\n"
 								+ "\t5. Chiusura definitiva della farmacia\n"
@@ -164,8 +173,10 @@ public class ClientFarmacia extends UnicastRemoteObject implements ClientMobileA
 			do{
 				System.out.println("Il magazzino centrale vende i seguenti prodotti:\n"
 						+ remactserver.toStringMagazzinoCentrale()
-						+ "\nInserire il codice identificativo del prodotto da comprare: ");
+						+ "\nInserire il codice identificativo del prodotto da comprare (x per uscire): ");
 				id = userIn.readLine();
+				if(id.equals("x") || id.equals("X"))
+					return;
 				if(remactserver.checkProdottoAMagazzino(id) == null){
 					System.out.print("!!! Il codice scelto non e' presente in magazzino !!!\n\n");
 				}else{
@@ -176,11 +187,13 @@ public class ClientFarmacia extends UnicastRemoteObject implements ClientMobileA
 				System.out.print("Inserire la quantita' da comprare: ");
 				try{
 					quantita = Integer.parseInt(userIn.readLine());
+					if(quantita == 0)
+						return;
 					if(!(quantita >= 1)){
-						System.out.println("!!! E' necessario inserire un numero maggiore di 0 !!!");
+						System.out.println("!!! E' necessario inserire almeno 1 come quantita' !!!");
 					}
 				}catch(NumberFormatException g){
-					System.out.println("!!! E' necessario inserire un numero maggiore di 0 !!!");
+					System.out.println("!!! E' necessario inserire un numero !!!");
 				}
 			}while(!(quantita>=1));
 			acquistato = remactserver.vendiProdotto(id, quantita);
@@ -207,7 +220,7 @@ public class ClientFarmacia extends UnicastRemoteObject implements ClientMobileA
 				UnicastRemoteObject.unexportObject(this, true);
 				System.out.println("La deregistrazione dal server centrale e la de-esportazione sono avvenute con successo.");
 			}else{
-				System.out.println("Si e' verificato un errore nella deregistrazione della farmacia dal server centrale.");
+				System.out.println("!!! Si e' verificato un errore nella deregistrazione della farmacia dal server centrale !!!");
 			}
 		}catch(Exception ex){
 			ex.printStackTrace();
@@ -246,7 +259,7 @@ public class ClientFarmacia extends UnicastRemoteObject implements ClientMobileA
 	 * null se non e' presente a magazzino 
 	 */
 	@Override
-	public O_Prodotto checkProdottoAMagazzino(String id){ //throws RemoteException?
+	public O_Prodotto checkProdottoAMagazzino(String id){
 		System.out.println("La farmacia sta verificare se il prodotto " + id + "e' presente in magazzino.");
 		return stock.checkProdottoAMagazzino(id);
 	}
@@ -285,6 +298,4 @@ public class ClientFarmacia extends UnicastRemoteObject implements ClientMobileA
 	public int hashCode(){
 		return getClass().hashCode();
 	}
-
-	
 }

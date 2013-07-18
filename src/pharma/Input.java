@@ -1,3 +1,7 @@
+/**
+* @author Giuliana Mazzi
+* @version 1.0 del 18 luglio 2013
+*/
 package pharma;
 
 /**
@@ -9,6 +13,6 @@ package pharma;
  */
 public class Input {
 	
-	public static String percorso = "";
+	public static String percorso = "/home/accounts/studenti/id585uee";
 	
 }

@@ -1,6 +1,6 @@
 /**
 * @author Giuliana Mazzi
-* @version 1.0 del 9 luglio 2013
+* @version 1.0 del 18 luglio 2013
 */
 package pharma;
 
@@ -14,7 +14,6 @@ import java.rmi.MarshalledObject;
 import java.rmi.RemoteException;
 import java.util.Properties;
 import java.util.Scanner;
-
 import javax.naming.InitialContext;
 import javax.rmi.PortableRemoteObject;
 
@@ -61,19 +60,20 @@ public class ClientAmministratore implements ClientMobileAgent_I, Serializable{
 								+ "\t1. Elenco prodotti disponibili presso il magazzino centrale\n"
 								+ "\t2. Inserimento prodotti e quantita'\n"
 								+ "\t3. Elimina prodotti\n"
-								+ "\t4. (Carica dati di esempio)\n" //proxy e boot. gli altri hanno unreferenced 
-								+ "\t5. Spegnimento del sistema ed uscita\n"
-								+ "\t6. Uscita\n");
+								+ "\t4. (Carica dati di esempio)\n" 
+								+ "\t5. Elenco utenti registrati\n"
+								+ "\t6. Spegnimento del sistema ed uscita\n"
+								+ "\t7. Uscita\n");
 			try{
 				BufferedReader userIn = new BufferedReader(new InputStreamReader(System.in));
 				try{
 					selezione = Integer.parseInt(userIn.readLine());
-					if(!(selezione >= 1 & selezione <=6)){
-						System.out.println("!!! E' necessario inserire un numero tra 1 e 6 !!!");
+					if(!(selezione >= 1 & selezione <=7)){
+						System.out.println("!!! E' necessario inserire un numero tra 1 e 7 !!!");
 						continue;
 					}
 				}catch(NumberFormatException g){
-					System.out.println("!!! E' necessario inserire un numero tra 1 e 5 !!!");
+					System.out.println("!!! E' necessario inserire un numero tra 1 e 7 !!!");
 					continue;
 				}
 				switch(selezione){
@@ -81,8 +81,9 @@ public class ClientAmministratore implements ClientMobileAgent_I, Serializable{
 				case 2: rifornisciMagazzino();break;
 				case 3: eliminaProdotto();break;
 				case 4: caricaEsempio();break;
-				case 5:	spegniTutto();break;
-				case 6: System.exit(0);break;
+				case 5: mostraUtenti();break;
+				case 6:	spegniTutto();break;
+				case 7: System.exit(0);break;
 				default: System.out.println("!!! La selezione non e' valida !!!");
 				}
 			}catch(IOException ex){
@@ -90,7 +91,7 @@ public class ClientAmministratore implements ClientMobileAgent_I, Serializable{
 			}
 		}
 	}
-	
+
 	//TRANSAZIONI COL SERVER CENTRALE
 
 	/**
@@ -212,17 +213,13 @@ public class ClientAmministratore implements ClientMobileAgent_I, Serializable{
 	//ALTRE TRANSAZIONI
 	
 	/**
-	 * Questo metodo consente di spegnere tutti i server. Prima fa una lookup sul servizio 
-	 * di CosNaming per ottenere una referenza al server proxy. Poi invoca il metodo del 
-	 * proxy (spegniPBA) che si occupa di de-registrare e de-esportare il server proxy, il 
-	 * server di bootstrap e il server di autenticazione. Infine usa la referenza al 
-	 * server centrale per invocare il suo metodo (spegniServer()) che lo de-esporta e lo 
-	 * deregistra dal sistema di attivazione. In questo modo non sara' piu' attivabile da 
-	 * eventuali client che ne abbiano conservato una referenza.
+	 * Questo metodo consente all'amministratore di recuperare una referenza remota del proxy 
+	 * attraverso una lookup sul servizio di Cosnaming.
+	 * @return ritorna una referenza remota del Proxy
 	 */
-	private void spegniTutto(){
+	private ServProxy_I getProxy(){
+		ServProxy_I proxydual = null;
 		try{
-			System.out.println("Si e' scelto di spegnere tutti i server.");
 			String ip ="";
 			try{
 				Scanner scan = new Scanner(new File("IPserver.txt"));
@@ -236,8 +233,40 @@ public class ClientAmministratore implements ClientMobileAgent_I, Serializable{
 			propCosnaming.put("java.naming.provider.url", "iiop:"+ip+":5555");
 			InitialContext contextCosnaming = new InitialContext(propCosnaming);
 			Object obj = contextCosnaming.lookup("ProxyDualServer");
-			ServProxy_I proxydual = (ServProxy_I)PortableRemoteObject.narrow(obj, ServProxy_I.class);
-			
+			proxydual = (ServProxy_I)PortableRemoteObject.narrow(obj, ServProxy_I.class);			
+			return proxydual;
+		}catch(Exception ex){
+			ex.printStackTrace();
+		}
+		return proxydual;
+	}
+	
+	/**
+	 * Questo metodo consente di visualizzare la lista degli utenti registrati.
+	 */
+	private void mostraUtenti() {
+		System.out.println("Si e' scelto di visualizzare l'elenco degli utenti registrati.");
+		ServProxy_I proxydual = (ServProxy_I)getProxy();
+		try{
+			System.out.println(proxydual.elencaUtenti());
+		}catch(Exception ex){
+			ex.printStackTrace();
+		}		
+	}
+
+	/**
+	 * Questo metodo consente di spegnere tutti i server. Prima fa una lookup sul servizio 
+	 * di CosNaming per ottenere una referenza al server proxy. Poi invoca il metodo del 
+	 * proxy (spegniPBA) che si occupa di de-registrare e de-esportare il server proxy, il 
+	 * server di bootstrap e il server di autenticazione. Infine usa la referenza al 
+	 * server centrale per invocare il suo metodo (spegniServer()) che lo de-esporta e lo 
+	 * deregistra dal sistema di attivazione. In questo modo non sara' piu' attivabile da 
+	 * eventuali client che ne abbiano conservato una referenza.
+	 */
+	private void spegniTutto(){
+		System.out.println("Si e' scelto di spegnere tutti i server.");
+		ServProxy_I proxydual = (ServProxy_I)getProxy();
+		try{
 			if(proxydual.spegniPBA()){
 				System.out.println("Il server Proxy e' stato deregistrato dai servizi di naming e de-esportato.");
 				System.out.println("Il server di Bootstrap e' stato deregistrato dai servizi di naming e de-esportato.");
@@ -249,10 +278,9 @@ public class ClientAmministratore implements ClientMobileAgent_I, Serializable{
 				System.out.println("Il server Centrale e' stato de-esportato e deregistrato dal sistema di attivazione.");
 			else{
 				System.out.println("Si e' verificato un errore nello spegnimento del server centrale.");
-			}			
-				
+			}
 		}catch(Exception ex){
-				ex.printStackTrace();
+			ex.printStackTrace();
 		}
 	}
 	

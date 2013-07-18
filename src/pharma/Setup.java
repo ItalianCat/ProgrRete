@@ -1,6 +1,6 @@
 /**
 * @author Giuliana Mazzi
-* @version 1.0 del 9 luglio 2013
+* @version 1.0 del 18 luglio 2013
 */
 package pharma;
 
@@ -18,28 +18,34 @@ import java.util.Properties;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 
-/**Questo programma deve essere lanciato con il seguente comando:
- * java -cp :/home/giuli/public_html/common/ \
- *   -Djava.security.policy=setup.policy        \
- *   -Djava.rmi.server.codebase=http://192.168.0.201:8000/common/    \
- *   pharma.Setup
- *   dove.....
- *   Nota: prima di lanciare questo programma, vanno lanciati rmid, rmiregistry e tnameserv
- *   sulle loro porte di default.
+/**
+ * Questa classe rappresenta il main del lato server e si occupa di creare i quattro 
+ * server che compongono il sistema:
+ * - il server centrale attivabile
+ * - il server di autenticazione attivabile
+ * - il server di bootstrap, esportato dualmente e registrato presso i servizi di naming
+ * - il server proxy, esportato dualmente e registrato presso i servizi di naming
+ * 
+ * Per i primi due server, si provvede a recuperare il riferimento al sistema di attivazione, 
+ * a creare e registrare due gruppi di attivazione (uno per il server centrale e uno per il 
+ * server di autenticazione), a creare gli Activation Descriptor per i due server e a 
+ * registrarli presso il sistema di attivazione.
+ * Per il server di bootstrap si invoca il costruttore che lo crea e lo esporta dualmente e 
+ * poi lo si registra sul registro RMI e sul servizio Cosnaming.
+ * Per il server proxy si invoca il costruttore che lo crea e lo esporta dualmente, passandogli 
+ * la referenza al server di autenticazione  e  poi lo si registra sul registro RMI e sul 
+ * servizio Cosnaming.
  */
-
 public class Setup{
-	private Setup(){} //evito istanziazioni
+	
+	private Setup(){}
+	
 	public static void main(String args[]){
 		
 		String policyGroup = Input.percorso + "/javarmi/pharma/group.policy";
 		String implCodebase = "file://"+Input.percorso+"/public_html/common/"; 
-		//String implCodebase = "file://"+Input.percorso+"/javarmi/"; //IMPORTANTE la barra dopo javarmi
-		//ERA "http://192.168.0.201:8000/common/";
-			
 		Remote stubServ = null;
 		Remote stubServAut = null;
-		//ServAutenticazione_I stubServAut = null;
 		String ip = "";
 		try{
 			ip = java.net.InetAddress.getLocalHost().getHostAddress();
@@ -54,7 +60,7 @@ public class Setup{
 			Properties prop0 = new Properties();
 			prop0.put("java.security.policy", policyGroup);
 			prop0.put("pharma.impl.codebase", implCodebase);
-			//prop0.put("java.rmi.server.hostname", ip);
+			prop0.put("java.rmi.server.hostname", ip);
 			prop0.put("java.class.path", "no_classpath");
 			
 			ActivationSystem sistAtt = ActivationGroup.getSystem();
@@ -73,7 +79,7 @@ public class Setup{
 			System.out.println("- Il server centrale e' stato registrato col sistema di attivazione. " +
 					"Ora e' possibile accedere al server centrale attraverso lo stub:\n" + stubServ);
 			
-			try{	//lo usa il server di autenticazione alla prima attivazione
+			try{
 				OutputStream out = new FileOutputStream("StubServerCentrale");
 				ObjectOutputStream outObj = new ObjectOutputStream(out);
 				outObj.writeObject(new MarshalledObject<Remote>(stubServ));
@@ -119,6 +125,29 @@ public class Setup{
 		
 		
 		try{
+			ServBootstrap_I bootServ = new ServBootstrap();
+			System.out.println("\nSERVER DI BOOTSTRAP:\n- E' stato creato un server di Bootstrap " +
+					"ed e' stato esportato dualmente.");
+			
+			Properties prop1 = new Properties();
+			prop1.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.rmi.registry.RegistryContextFactory");
+			prop1.put(Context.PROVIDER_URL, "rmi://localhost:1099");
+			prop1.put("java.rmi.server.hostname", ip);	//serve?
+			
+			InitialContext context1 = new InitialContext(prop1);
+			context1.rebind("BootstrapServer", bootServ);
+			System.out.println("- Il server di Bootstrap e' stato registrato sul registro RMI.");
+			
+			Properties prop2 = new Properties();
+			prop2.put("java.naming.factory.initial", "com.sun.jndi.cosnaming.CNCtxFactory");
+			prop2.put("java.naming.provider.url", "iiop://localhost:5555");
+			prop2.put("java.rmi.server.hostname", ip);	//serve?
+			
+			InitialContext context2 = new InitialContext(prop2);
+			context2.rebind("BootstrapServer", bootServ);
+			System.out.println("- Il server di Bootstrap e' stato registrato col servizio di CosNaming.");
+			
+
 			System.setProperty("javax.net.ssl.trustStore", "truststore.jks");
 			System.setProperty("javax.net.ssl.trustStorePassword", "giuliana");
 			ServProxy proxyServ = new ServProxy((ServAutenticazione_I)stubServAut);
@@ -142,37 +171,10 @@ public class Setup{
 			InitialContext context4 = new InitialContext(prop4);
 			context4.rebind("ProxyDualServer", proxyServ);
 			System.out.println("- Il server Proxy e' stato registrato col servizio di CosNaming.");
-			
-			ServBootstrap_I bootServ = new ServBootstrap();
-			System.out.println("\nSERVER DI BOOTSTRAP:\n- E' stato creato un server di Bootstrap " +
-					"ed e' stato esportato dualmente.");
-			
-			Properties prop1 = new Properties();
-			prop1.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.rmi.registry.RegistryContextFactory");
-			prop1.put(Context.PROVIDER_URL, "rmi://localhost:1099");
-			prop1.put("java.rmi.server.hostname", ip);	//serve?
-			
-			InitialContext context1 = new InitialContext(prop1);
-			context1.rebind("BootstrapServer", bootServ);
-			System.out.println("- Il server di Bootstrap e' stato registrato sul registro RMI.");
-			
-			Properties prop2 = new Properties();
-			prop2.put("java.naming.factory.initial", "com.sun.jndi.cosnaming.CNCtxFactory");
-			prop2.put("java.naming.provider.url", "iiop://localhost:5555");
-			prop2.put("java.rmi.server.hostname", ip);	//serve?
-			
-			InitialContext context2 = new InitialContext(prop2);
-			context2.rebind("BootstrapServer", bootServ);
-			System.out.println("- Il server di Bootstrap e' stato registrato col servizio di CosNaming.");
-			
-			
-			
-			
-			
+					
 		}catch(Exception ex){
 			System.out.println("\n!!! Si e' verificato un errore nel lancio dei server Proxy e di Bootstrap !!!");
 			ex.printStackTrace();
 		}
-		
 	}
 }
