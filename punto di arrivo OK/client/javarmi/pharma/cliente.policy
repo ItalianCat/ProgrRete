@@ -1,0 +1,10 @@
+grant codeBase "file:///home/accounts/studenti/id092063/javarmi/-" {
+  permission java.net.SocketPermission "157.27.241.199", "connect, resolve";
+  permission java.io.FilePermission "/home/accounts/studenti/id092063/javarmi/IPserver.txt", "read";
+  permission java.lang.RuntimePermission "exitVM";
+};
+grant codeBase "http://157.27.241.199:8000/common/" {
+  permission java.net.SocketPermission "157.27.241.199", "connect, resolve";
+  permission java.io.FilePermission "/home/accounts/studenti/id092063/javarmi/IPserver.txt", "read";
+  permission java.lang.RuntimePermission "exitVM";
+};

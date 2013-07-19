@@ -1,0 +1,27 @@
+grant codeBase "file:///home/accounts/studenti/id585uee/javarmi/-" {
+  permission java.net.SocketPermission "157.27.241.199", "connect, resolve";
+  permission java.net.SocketPermission "157.27.241.198", "accept"; 		//indirizzo del client
+  permission java.io.FilePermission "/home/accounts/studenti/id585uee/javarmi/IPserver.txt", "read";
+  permission java.io.FilePermission "/home/accounts/studenti/id585uee/javarmi/*", "read, write";
+  permission java.io.FilePermission "/home/accounts/studenti/id585uee/public_html/common/-", "read";
+  permission java.util.PropertyPermission "user.dir", "read";
+  permission java.lang.RuntimePermission "exitVM";
+};
+grant codeBase "http://157.27.241.199:8000/common/" {
+  permission java.net.SocketPermission "157.27.241.199", "connect, resolve";
+  permission java.net.SocketPermission "157.27.241.198", "accept";
+  permission java.io.FilePermission "/home/accounts/studenti/id585uee/javarmi/IPserver.txt", "read";
+  permission java.io.FilePermission "/home/accounts/studenti/id585uee/javarmi/*", "read, write";
+  permission java.io.FilePermission "/home/accounts/studenti/id585uee/public_html/common/-", "read";
+  permission java.util.PropertyPermission "user.dir", "read";
+  permission java.lang.RuntimePermission "exitVM";
+};
+grant codeBase "file:///home/accounts/studenti/id585uee/public_html/common/-" { //serve se lancio la farmacia dal pc del server
+  permission java.net.SocketPermission "157.27.241.199", "connect, resolve";
+  permission java.net.SocketPermission "157.27.241.198", "accept";
+  permission java.io.FilePermission "/home/accounts/studenti/id585uee/javarmi/IPserver.txt", "read";
+  permission java.io.FilePermission "/home/accounts/studenti/id585uee/javarmi/*", "read, write";
+  permission java.io.FilePermission "/home/accounts/studenti/id585uee/public_html/common/-", "read";
+  permission java.util.PropertyPermission "user.dir", "read";
+  permission java.lang.RuntimePermission "exitVM";
+};
